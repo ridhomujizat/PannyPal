@@ -7,11 +7,11 @@ services:
       dockerfile: Dockerfile
     container_name: pannypal-api-prod
     ports:
-      - "8081:8081"
+      - "9001:9001"
     environment:
       # Application Configuration
       - APP_ENV=${APP_ENV:-production}
-      - APP_PORT=${APP_PORT:-8081}
+      - APP_PORT=${APP_PORT:-9001}
       - GIN_MODE=release
       
       # Database Configuration
@@ -45,10 +45,10 @@ services:
       - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
     restart: unless-stopped
     labels:
-      - "swagger.ui=http://localhost:8081/swagger/index.html"
-      - "api.docs=http://localhost:8081/swagger/doc.json"
+      - "swagger.ui=http://localhost:9001/swagger/index.html"
+      - "api.docs=http://localhost:9001/swagger/doc.json"
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/health"]
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:9001/health"]
       interval: 30s
       timeout: 10s
       retries: 3

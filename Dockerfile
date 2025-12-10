@@ -29,6 +29,6 @@ COPY --from=builder /app/api .
 COPY --from=builder /app/docs ./docs
 COPY --from=builder /app/configs ./configs
 
-EXPOSE 8081
+EXPOSE 9001
 
 CMD ["./api"]
