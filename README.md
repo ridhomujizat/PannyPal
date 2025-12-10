@@ -29,10 +29,12 @@ cp .env.example .env
 # Edit .env with your database credentials
 ```
 
-4. Run with Swagger documentation
+4. generate Swagger documentation
 ```bash
-./start-with-swagger.sh
+swag init -g ./cmd/api/main.go -o ./docs   
 ```
+or 
+
 
 ### 📚 API Documentation
 

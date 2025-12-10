@@ -4,7 +4,7 @@ import (
 	"pannypal/internal/repository/analytics"
 	"pannypal/internal/repository/budget"
 	"pannypal/internal/repository/category"
-	"pannypal/internal/repository/ticketing"
+	logdata "pannypal/internal/repository/log-data"
 	"pannypal/internal/repository/transaction"
 	"pannypal/internal/repository/user"
 )
@@ -15,5 +15,5 @@ type IRepository struct {
 	Budget      budget.IRepository
 	Transaction transaction.IRepository
 	Analytics   analytics.IRepository
-	Ticketing   ticketing.IRepository
+	LogData     logdata.IRepository
 }

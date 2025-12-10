@@ -8,6 +8,7 @@ import (
 	budgetHandler "pannypal/internal/handler/budget"
 	categoryHandler "pannypal/internal/handler/category"
 	transactionHandler "pannypal/internal/handler/transaction"
+	webhookHandler "pannypal/internal/handler/webhook"
 	ai "pannypal/internal/pkg/ai-connector"
 	database "pannypal/internal/pkg/db"
 	"pannypal/internal/pkg/middleware"
@@ -18,7 +19,7 @@ import (
 	"pannypal/internal/repository/analytics"
 	"pannypal/internal/repository/budget"
 	"pannypal/internal/repository/category"
-	"pannypal/internal/repository/ticketing"
+	logdata "pannypal/internal/repository/log-data"
 	"pannypal/internal/repository/transaction"
 	"pannypal/internal/repository/user"
 	aicashflowService "pannypal/internal/service/ai-cashflow"
@@ -26,6 +27,7 @@ import (
 	budgetService "pannypal/internal/service/budget"
 	categoryService "pannypal/internal/service/category"
 	transactionService "pannypal/internal/service/transaction"
+	webhookService "pannypal/internal/service/webhook"
 	"sync"
 
 	_ "pannypal/docs"
@@ -116,7 +118,7 @@ func InitRoutes(
 		Transaction: transaction.NewRepo(ctx, redis, db),
 		User:        user.NewRepo(ctx, redis, db),
 		Analytics:   analytics.NewRepo(ctx, redis, db),
-		Ticketing:   ticketing.NewRepo(ctx, redis, db),
+		LogData:     logdata.NewRepo(ctx, redis, db),
 	}
 	// init services
 	transactionSvc := transactionService.NewService(ctx, redis, rp)
@@ -124,6 +126,7 @@ func InitRoutes(
 	budgetSvc := budgetService.NewService(ctx, redis, rp)
 	analyticsSvc := analyticsService.NewService(ctx, redis, rp, db)
 	aiCashflowSvc := aicashflowService.NewService(ctx, redis, rp, ai)
+	webhookSvc := webhookService.NewService(ctx, redis, rp)
 
 	// init handlers
 	transactionHandler := transactionHandler.NewHandler(ctx, rb, transactionSvc)
@@ -131,6 +134,7 @@ func InitRoutes(
 	budgetHandler := budgetHandler.NewHandler(ctx, rb, budgetSvc)
 	analyticsHandler := analyticsHandler.NewHandler(ctx, rb, analyticsSvc)
 	aiCashflowHandler := aicashflowHandler.NewHandler(ctx, rb, aiCashflowSvc)
+	webhookHandler := webhookHandler.NewHandler(ctx, rb, webhookSvc)
 
 	// init handler routes
 	transactionHandler.NewRoutes(e)
@@ -138,4 +142,5 @@ func InitRoutes(
 	budgetHandler.NewRoutes(e)
 	analyticsHandler.NewRoutes(e)
 	aiCashflowHandler.NewRoutes(e)
+	webhookHandler.NewRoutes(e)
 }

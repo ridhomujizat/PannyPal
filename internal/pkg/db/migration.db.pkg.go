@@ -27,7 +27,8 @@ func (db *Database) RunMigrations() error {
 		&models.Transaction{},
 		&models.Budget{},
 		// Then ticketing related tables
-		&models.Ticket{},
+		&models.LogWaha{},
+		&models.LogPrompt{},
 	}
 
 	for _, model := range models {

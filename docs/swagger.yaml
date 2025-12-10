@@ -1,23 +1,5 @@
 basePath: /api
 definitions:
-  pannypal_internal_service_analytics_dto.PeriodInfo:
-    properties:
-      end_date:
-        type: string
-      start_date:
-        type: string
-    type: object
-  pannypal_internal_service_transaction_dto.PeriodInfo:
-    properties:
-      end_date:
-        type: string
-      month:
-        type: integer
-      start_date:
-        type: string
-      year:
-        type: integer
-    type: object
   dto.BudgetStatusListResponse:
     properties:
       budget_statuses:
@@ -153,15 +135,6 @@ definitions:
     required:
     - name
     type: object
-  dto.CreateTicketRequest:
-    properties:
-      description:
-        type: string
-      title:
-        type: string
-    required:
-    - title
-    type: object
   dto.CreateTransactionRequest:
     properties:
       amount:
@@ -231,14 +204,19 @@ definitions:
     type: object
   dto.TransactionResponseAi:
     properties:
-      amount:
-        type: number
-      category_id:
-        type: integer
-      description:
+      message:
         type: string
-      type:
-        type: string
+      req_payload:
+        properties:
+          amount:
+            type: number
+          category_id:
+            type: integer
+          description:
+            type: string
+          type:
+            type: string
+        type: object
     type: object
   dto.TransactionSummaryResponse:
     properties:
@@ -280,20 +258,6 @@ definitions:
       name:
         maxLength: 100
         minLength: 1
-        type: string
-    type: object
-  dto.UpdateStatusTicketRequest:
-    properties:
-      status:
-        type: string
-    required:
-    - status
-    type: object
-  dto.UpdateTicketRequest:
-    properties:
-      description:
-        type: string
-      title:
         type: string
     type: object
   dto.UpdateTransactionRequest:
@@ -352,6 +316,24 @@ definitions:
     x-enum-varnames:
     - TypeIncome
     - TypeExpense
+  pannypal_internal_service_analytics_dto.PeriodInfo:
+    properties:
+      end_date:
+        type: string
+      start_date:
+        type: string
+    type: object
+  pannypal_internal_service_transaction_dto.PeriodInfo:
+    properties:
+      end_date:
+        type: string
+      month:
+        type: integer
+      start_date:
+        type: string
+      year:
+        type: integer
+    type: object
   types.Response:
     properties:
       code:
@@ -824,158 +806,6 @@ paths:
       summary: Update category
       tags:
       - Category APIs
-  /tickets:
-    post:
-      consumes:
-      - application/json
-      description: Create a new support ticket
-      parameters:
-      - description: Ticket data
-        in: body
-        name: ticket
-        required: true
-        schema:
-          $ref: '#/definitions/dto.CreateTicketRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/types.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.Response'
-      summary: Create new ticket
-      tags:
-      - Ticketing APIs
-  /tickets/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Delete ticket by ID
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/types.Response'
-      summary: Delete ticket
-      tags:
-      - Ticketing APIs
-    get:
-      consumes:
-      - application/json
-      description: Get specific ticket by ID
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/types.Response'
-      summary: Get ticket by ID
-      tags:
-      - Ticketing APIs
-    put:
-      consumes:
-      - application/json
-      description: Update existing ticket
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Updated ticket data
-        in: body
-        name: ticket
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdateTicketRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/types.Response'
-      summary: Update ticket
-      tags:
-      - Ticketing APIs
-  /tickets/{id}/status:
-    patch:
-      consumes:
-      - application/json
-      description: Update the status of a ticket
-      parameters:
-      - description: Ticket ID
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Updated ticket status
-        in: body
-        name: status
-        required: true
-        schema:
-          $ref: '#/definitions/dto.UpdateStatusTicketRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/types.Response'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/types.Response'
-        "404":
-          description: Not Found
-          schema:
-            $ref: '#/definitions/types.Response'
-      summary: Update ticket status
-      tags:
-      - Ticketing APIs
   /transactions:
     get:
       consumes:
@@ -1192,4 +1022,29 @@ paths:
       summary: Get transaction summary
       tags:
       - Transaction APIs
+  /webhook/waha:
+    post:
+      consumes:
+      - application/json
+      description: Handles webhook events from Waha
+      parameters:
+      - description: Webhook event payload
+        in: body
+        name: webhook
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Webhook event processed successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Webhook Event Waha
+      tags:
+      - Webhook
 swagger: "2.0"

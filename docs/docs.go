@@ -707,236 +707,6 @@ const docTemplate = `{
                 }
             }
         },
-        "/tickets": {
-            "post": {
-                "description": "Create a new support ticket",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ticketing APIs"
-                ],
-                "summary": "Create new ticket",
-                "parameters": [
-                    {
-                        "description": "Ticket data",
-                        "name": "ticket",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.CreateTicketRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "201": {
-                        "description": "Created",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/tickets/{id}": {
-            "get": {
-                "description": "Get specific ticket by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ticketing APIs"
-                ],
-                "summary": "Get ticket by ID",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    }
-                }
-            },
-            "put": {
-                "description": "Update existing ticket",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ticketing APIs"
-                ],
-                "summary": "Update ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated ticket data",
-                        "name": "ticket",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdateTicketRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    }
-                }
-            },
-            "delete": {
-                "description": "Delete ticket by ID",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ticketing APIs"
-                ],
-                "summary": "Delete ticket",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    }
-                }
-            }
-        },
-        "/tickets/{id}/status": {
-            "patch": {
-                "description": "Update the status of a ticket",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Ticketing APIs"
-                ],
-                "summary": "Update ticket status",
-                "parameters": [
-                    {
-                        "type": "integer",
-                        "description": "Ticket ID",
-                        "name": "id",
-                        "in": "path",
-                        "required": true
-                    },
-                    {
-                        "description": "Updated ticket status",
-                        "name": "status",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/dto.UpdateStatusTicketRequest"
-                        }
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    },
-                    "404": {
-                        "description": "Not Found",
-                        "schema": {
-                            "$ref": "#/definitions/types.Response"
-                        }
-                    }
-                }
-            }
-        },
         "/transactions": {
             "get": {
                 "description": "List all transactions with filters and pagination",
@@ -1263,37 +1033,47 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/webhook/waha": {
+            "post": {
+                "description": "Handles webhook events from Waha",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Webhook Event Waha",
+                "parameters": [
+                    {
+                        "description": "Webhook event payload",
+                        "name": "webhook",
+                        "in": "body",
+                        "required": true,
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Webhook event processed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
-        "pannypal_internal_service_analytics_dto.PeriodInfo": {
-            "type": "object",
-            "properties": {
-                "end_date": {
-                    "type": "string"
-                },
-                "start_date": {
-                    "type": "string"
-                }
-            }
-        },
-        "pannypal_internal_service_transaction_dto.PeriodInfo": {
-            "type": "object",
-            "properties": {
-                "end_date": {
-                    "type": "string"
-                },
-                "month": {
-                    "type": "integer"
-                },
-                "start_date": {
-                    "type": "string"
-                },
-                "year": {
-                    "type": "integer"
-                }
-            }
-        },
         "dto.BudgetStatusListResponse": {
             "type": "object",
             "properties": {
@@ -1497,20 +1277,6 @@ const docTemplate = `{
                 }
             }
         },
-        "dto.CreateTicketRequest": {
-            "type": "object",
-            "required": [
-                "title"
-            ],
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
-                }
-            }
-        },
         "dto.CreateTransactionRequest": {
             "type": "object",
             "required": [
@@ -1615,17 +1381,25 @@ const docTemplate = `{
         "dto.TransactionResponseAi": {
             "type": "object",
             "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "category_id": {
-                    "type": "integer"
-                },
-                "description": {
+                "message": {
                     "type": "string"
                 },
-                "type": {
-                    "type": "string"
+                "req_payload": {
+                    "type": "object",
+                    "properties": {
+                        "amount": {
+                            "type": "number"
+                        },
+                        "category_id": {
+                            "type": "integer"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "type": {
+                            "type": "string"
+                        }
+                    }
                 }
             }
         },
@@ -1688,28 +1462,6 @@ const docTemplate = `{
                     "type": "string",
                     "maxLength": 100,
                     "minLength": 1
-                }
-            }
-        },
-        "dto.UpdateStatusTicketRequest": {
-            "type": "object",
-            "required": [
-                "status"
-            ],
-            "properties": {
-                "status": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.UpdateTicketRequest": {
-            "type": "object",
-            "properties": {
-                "description": {
-                    "type": "string"
-                },
-                "title": {
-                    "type": "string"
                 }
             }
         },
@@ -1796,6 +1548,34 @@ const docTemplate = `{
                 "TypeIncome",
                 "TypeExpense"
             ]
+        },
+        "pannypal_internal_service_analytics_dto.PeriodInfo": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                }
+            }
+        },
+        "pannypal_internal_service_transaction_dto.PeriodInfo": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "month": {
+                    "type": "integer"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "year": {
+                    "type": "integer"
+                }
+            }
         },
         "types.Response": {
             "type": "object",
