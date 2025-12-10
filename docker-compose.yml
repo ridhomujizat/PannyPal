@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  pannypal-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pannypal-api-prod
+    ports:
+      - "8081:8081"
+    environment:
+      # Application Configuration
+      - APP_ENV=${APP_ENV:-production}
+      - APP_PORT=${APP_PORT:-8081}
+      - GIN_MODE=release
+      
+      # Database Configuration
+      - DB_HOST=${DB_HOST:-43.157.205.163}
+      - DB_PORT=${DB_PORT:-5432}
+      - DB_NAME=${DB_NAME:-pannypal}
+      - DB_USER=${DB_USER:-postgre}
+      - DB_PASS=${DB_PASS:-ridho1234567}
+      
+      # Redis Configuration
+      - REDIS_HOST=${REDIS_HOST:-43.157.205.163}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_USER=${REDIS_USER:-default}
+      - REDIS_PASS=${REDIS_PASS:-ridho1234567}
+      - REDIS_POOL_SIZE=${REDIS_POOL_SIZE:-10}
+      
+      # RabbitMQ Configuration
+      - RABBIT_HOST=${RABBIT_HOST:-43.157.205.163}
+      - RABBIT_PORT=${RABBIT_PORT:-5672}
+      - RABBIT_USER=${RABBIT_USER:-ridho}
+      - RABBIT_PASS=${RABBIT_PASS:-ridho1234567}
+      
+      # AWS Configuration (optional)
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
+      - AWS_REGION=${AWS_REGION:-}
+      - AWS_BUCKET_NAME=${AWS_BUCKET_NAME:-}
+
+      # AI Service Configuration
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-your_gemini_api_key}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+    restart: unless-stopped
+    labels:
+      - "swagger.ui=http://localhost:8081/swagger/index.html"
+      - "api.docs=http://localhost:8081/swagger/doc.json"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s

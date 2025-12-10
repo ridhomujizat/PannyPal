@@ -1,0 +1,1195 @@
+basePath: /api
+definitions:
+  pannypal_internal_service_analytics_dto.PeriodInfo:
+    properties:
+      end_date:
+        type: string
+      start_date:
+        type: string
+    type: object
+  pannypal_internal_service_transaction_dto.PeriodInfo:
+    properties:
+      end_date:
+        type: string
+      month:
+        type: integer
+      start_date:
+        type: string
+      year:
+        type: integer
+    type: object
+  dto.BudgetStatusListResponse:
+    properties:
+      budget_statuses:
+        items:
+          $ref: '#/definitions/dto.BudgetStatusResponse'
+        type: array
+      month:
+        type: integer
+      total_budget:
+        type: number
+      total_remaining:
+        type: number
+      total_spent:
+        type: number
+      year:
+        type: integer
+    type: object
+  dto.BudgetStatusResponse:
+    properties:
+      budget_amount:
+        type: number
+      budget_id:
+        type: integer
+      category_id:
+        type: integer
+      category_name:
+        type: string
+      is_over_budget:
+        type: boolean
+      month:
+        type: integer
+      percentage_used:
+        type: number
+      remaining_amount:
+        type: number
+      spent_amount:
+        type: number
+      year:
+        type: integer
+    type: object
+  dto.CategoryAnalyticsResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/dto.CategoryDataPoint'
+        type: array
+      period:
+        $ref: '#/definitions/pannypal_internal_service_analytics_dto.PeriodInfo'
+      top_category:
+        $ref: '#/definitions/dto.CategoryDataPoint'
+      total_amount:
+        type: number
+      transaction_count:
+        type: integer
+    type: object
+  dto.CategoryDataPoint:
+    properties:
+      average_amount:
+        type: number
+      category_id:
+        type: integer
+      category_name:
+        type: string
+      count:
+        type: integer
+      percentage:
+        type: number
+      total_amount:
+        type: number
+      type:
+        $ref: '#/definitions/models.TransactionType'
+    type: object
+  dto.CategoryListResponse:
+    properties:
+      categories:
+        items:
+          $ref: '#/definitions/dto.CategoryResponse'
+        type: array
+    type: object
+  dto.CategoryResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  dto.CategorySummary:
+    properties:
+      category_id:
+        type: integer
+      category_name:
+        type: string
+      count:
+        type: integer
+      percentage:
+        type: number
+      total_amount:
+        type: number
+      type:
+        $ref: '#/definitions/models.TransactionType'
+    type: object
+  dto.CreateBudgetRequest:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: integer
+      month:
+        maximum: 12
+        minimum: 1
+        type: integer
+      phone_number:
+        type: string
+      year:
+        minimum: 2020
+        type: integer
+    required:
+    - amount
+    - category_id
+    - month
+    - year
+    type: object
+  dto.CreateCategoryRequest:
+    properties:
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+    required:
+    - name
+    type: object
+  dto.CreateTicketRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  dto.CreateTransactionRequest:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: integer
+      description:
+        type: string
+      phone_number:
+        type: string
+      type:
+        enum:
+        - INCOME
+        - EXPENSE
+        type: string
+    required:
+    - amount
+    - type
+    type: object
+  dto.InputTransaction:
+    properties:
+      message:
+        type: string
+      phone_number:
+        type: string
+      save_as_draft:
+        type: boolean
+    required:
+    - message
+    - phone_number
+    type: object
+  dto.MonthlyAnalyticsResponse:
+    properties:
+      best_month:
+        $ref: '#/definitions/dto.MonthlyDataPoint'
+      data:
+        items:
+          $ref: '#/definitions/dto.MonthlyDataPoint'
+        type: array
+      total_balance:
+        type: number
+      total_expense:
+        type: number
+      total_income:
+        type: number
+      worst_month:
+        $ref: '#/definitions/dto.MonthlyDataPoint'
+      year:
+        type: integer
+    type: object
+  dto.MonthlyDataPoint:
+    properties:
+      balance:
+        type: number
+      month:
+        type: integer
+      month_name:
+        type: string
+      total_expense:
+        type: number
+      total_income:
+        type: number
+      transaction_count:
+        type: integer
+      year:
+        type: integer
+    type: object
+  dto.TransactionResponseAi:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: integer
+      description:
+        type: string
+      type:
+        type: string
+    type: object
+  dto.TransactionSummaryResponse:
+    properties:
+      balance:
+        type: number
+      category_summary:
+        items:
+          $ref: '#/definitions/dto.CategorySummary'
+        type: array
+      expense_count:
+        type: integer
+      income_count:
+        type: integer
+      period:
+        $ref: '#/definitions/pannypal_internal_service_transaction_dto.PeriodInfo'
+      total_expense:
+        type: number
+      total_income:
+        type: number
+      transaction_count:
+        type: integer
+    type: object
+  dto.UpdateBudgetRequest:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: integer
+      month:
+        maximum: 12
+        minimum: 1
+        type: integer
+      year:
+        minimum: 2020
+        type: integer
+    type: object
+  dto.UpdateCategoryRequest:
+    properties:
+      name:
+        maxLength: 100
+        minLength: 1
+        type: string
+    type: object
+  dto.UpdateStatusTicketRequest:
+    properties:
+      status:
+        type: string
+    required:
+    - status
+    type: object
+  dto.UpdateTicketRequest:
+    properties:
+      description:
+        type: string
+      title:
+        type: string
+    type: object
+  dto.UpdateTransactionRequest:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: integer
+      description:
+        type: string
+      type:
+        enum:
+        - INCOME
+        - EXPENSE
+        type: string
+    type: object
+  dto.YearlyAnalyticsResponse:
+    properties:
+      best_year:
+        $ref: '#/definitions/dto.YearlyDataPoint'
+      data:
+        items:
+          $ref: '#/definitions/dto.YearlyDataPoint'
+        type: array
+      end_year:
+        type: integer
+      start_year:
+        type: integer
+      total_balance:
+        type: number
+      total_expense:
+        type: number
+      total_income:
+        type: number
+      worst_year:
+        $ref: '#/definitions/dto.YearlyDataPoint'
+    type: object
+  dto.YearlyDataPoint:
+    properties:
+      balance:
+        type: number
+      total_expense:
+        type: number
+      total_income:
+        type: number
+      transaction_count:
+        type: integer
+      year:
+        type: integer
+    type: object
+  models.TransactionType:
+    enum:
+    - INCOME
+    - EXPENSE
+    type: string
+    x-enum-varnames:
+    - TypeIncome
+    - TypeExpense
+  types.Response:
+    properties:
+      code:
+        type: integer
+      data: {}
+      error: {}
+      message:
+        type: string
+    type: object
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: API lengkap untuk monitoring pengeluaran dan pemasukan cash flow
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Cash Flow API
+  version: "1.0"
+paths:
+  /ai-cashflow/transaction:
+    post:
+      consumes:
+      - application/json
+      description: Create a new transaction using AI processing
+      parameters:
+      - description: Transaction data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InputTransaction'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Transaction created successfully
+          schema:
+            $ref: '#/definitions/dto.TransactionResponseAi'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Create AI transaction
+      tags:
+      - AI Cashflow APIs
+  /analytics/categories:
+    get:
+      consumes:
+      - application/json
+      description: Get spending/income by category
+      parameters:
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: Analysis from this date
+        in: query
+        name: start_date
+        type: string
+      - description: Analysis until this date
+        in: query
+        name: end_date
+        type: string
+      - description: INCOME or EXPENSE
+        in: query
+        name: type
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category analytics retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.CategoryAnalyticsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get category analytics
+      tags:
+      - Analytics APIs
+  /analytics/monthly:
+    get:
+      consumes:
+      - application/json
+      description: Get monthly breakdown for a year
+      parameters:
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: Year
+        in: query
+        name: year
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Monthly analytics retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.MonthlyAnalyticsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get monthly analytics
+      tags:
+      - Analytics APIs
+  /analytics/yearly:
+    get:
+      consumes:
+      - application/json
+      description: Get yearly comparison
+      parameters:
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: Start year
+        in: query
+        name: start_year
+        type: integer
+      - description: End year
+        in: query
+        name: end_year
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Yearly analytics retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.YearlyAnalyticsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get yearly analytics
+      tags:
+      - Analytics APIs
+  /budgets:
+    get:
+      consumes:
+      - application/json
+      description: Get list of budgets with optional filters
+      parameters:
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: Filter by month
+        in: query
+        name: month
+        type: integer
+      - description: Filter by year
+        in: query
+        name: year
+        type: integer
+      - description: Filter by category
+        in: query
+        name: category_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budgets retrieved successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get budgets
+      tags:
+      - Budget APIs
+    post:
+      consumes:
+      - application/json
+      description: Set monthly budget for a category
+      parameters:
+      - description: Budget data
+        in: body
+        name: budget
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateBudgetRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Budget created successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Create budget
+      tags:
+      - Budget APIs
+  /budgets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete budget by ID
+      parameters:
+      - description: Budget ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget deleted successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Delete budget
+      tags:
+      - Budget APIs
+    get:
+      consumes:
+      - application/json
+      description: Get specific budget by ID
+      parameters:
+      - description: Budget ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget retrieved successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get budget by ID
+      tags:
+      - Budget APIs
+    put:
+      consumes:
+      - application/json
+      description: Update existing budget
+      parameters:
+      - description: Budget ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: Updated budget data
+        in: body
+        name: budget
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateBudgetRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget updated successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Update budget
+      tags:
+      - Budget APIs
+  /budgets/status:
+    get:
+      consumes:
+      - application/json
+      description: Check budget usage status
+      parameters:
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: Filter by month (1-12)
+        in: query
+        name: month
+        type: integer
+      - description: Filter by year
+        in: query
+        name: year
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Budget status retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.BudgetStatusListResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get budget status
+      tags:
+      - Budget APIs
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Get list of all categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.CategoryListResponse'
+      summary: Get all categories
+      tags:
+      - Category APIs
+    post:
+      consumes:
+      - application/json
+      description: Create a new category for transactions
+      parameters:
+      - description: Category data
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Category created successfully
+          schema:
+            $ref: '#/definitions/dto.CategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Create new category
+      tags:
+      - Category APIs
+  /categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category deleted successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Delete category
+      tags:
+      - Category APIs
+    get:
+      consumes:
+      - application/json
+      description: Get specific category by ID
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.CategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get category by ID
+      tags:
+      - Category APIs
+    put:
+      consumes:
+      - application/json
+      description: Update existing category
+      parameters:
+      - description: Category ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated category data
+        in: body
+        name: category
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateCategoryRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Category updated successfully
+          schema:
+            $ref: '#/definitions/dto.CategoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Update category
+      tags:
+      - Category APIs
+  /tickets:
+    post:
+      consumes:
+      - application/json
+      description: Create a new support ticket
+      parameters:
+      - description: Ticket data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Create new ticket
+      tags:
+      - Ticketing APIs
+  /tickets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete ticket by ID
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Delete ticket
+      tags:
+      - Ticketing APIs
+    get:
+      consumes:
+      - application/json
+      description: Get specific ticket by ID
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get ticket by ID
+      tags:
+      - Ticketing APIs
+    put:
+      consumes:
+      - application/json
+      description: Update existing ticket
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated ticket data
+        in: body
+        name: ticket
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Update ticket
+      tags:
+      - Ticketing APIs
+  /tickets/{id}/status:
+    patch:
+      consumes:
+      - application/json
+      description: Update the status of a ticket
+      parameters:
+      - description: Ticket ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated ticket status
+        in: body
+        name: status
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateStatusTicketRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Update ticket status
+      tags:
+      - Ticketing APIs
+  /transactions:
+    get:
+      consumes:
+      - application/json
+      description: List all transactions with filters and pagination
+      parameters:
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: Filter by type (INCOME/EXPENSE)
+        in: query
+        name: type
+        type: string
+      - description: Filter by category ID
+        in: query
+        name: category_id
+        type: integer
+      - description: Filter transactions from this date (ISO format)
+        in: query
+        name: start_date
+        type: string
+      - description: Filter transactions until this date (ISO format)
+        in: query
+        name: end_date
+        type: string
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10, max: 100)'
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transactions retrieved successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get all transactions
+      tags:
+      - Transaction APIs
+    post:
+      consumes:
+      - application/json
+      description: Create new income or expense transaction
+      parameters:
+      - description: Transaction data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Transaction created successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Create new transaction
+      tags:
+      - Transaction APIs
+  /transactions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete transaction by ID
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction deleted successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Delete transaction
+      tags:
+      - Transaction APIs
+    get:
+      consumes:
+      - application/json
+      description: Get specific transaction by ID
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction retrieved successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get transaction by ID
+      tags:
+      - Transaction APIs
+    put:
+      consumes:
+      - application/json
+      description: Update existing transaction. All fields are optional
+      parameters:
+      - description: Transaction ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: Updated transaction data
+        in: body
+        name: transaction
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction updated successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Update transaction
+      tags:
+      - Transaction APIs
+  /transactions/summary:
+    get:
+      consumes:
+      - application/json
+      description: Get summary of transactions with totals and category breakdown
+      parameters:
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: Summary from this date
+        in: query
+        name: start_date
+        type: string
+      - description: Summary until this date
+        in: query
+        name: end_date
+        type: string
+      - description: Filter by specific month (1-12)
+        in: query
+        name: month
+        type: integer
+      - description: Filter by specific year
+        in: query
+        name: year
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transaction summary retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.TransactionSummaryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get transaction summary
+      tags:
+      - Transaction APIs
+swagger: "2.0"

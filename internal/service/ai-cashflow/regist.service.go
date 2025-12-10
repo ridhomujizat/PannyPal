@@ -1,0 +1,31 @@
+package aicashflow
+
+import (
+	"context"
+
+	types "pannypal/internal/common/type"
+	"pannypal/internal/pkg/ai-connector"
+	"pannypal/internal/pkg/redis"
+	"pannypal/internal/repository"
+	"pannypal/internal/service/ai-cashflow/dto"
+)
+
+type Service struct {
+	rp    repository.IRepository
+	redis redis.IRedis
+	ctx   context.Context
+	ai    *ai.AiClient
+}
+
+type IService interface {
+	InputTransaction(payload dto.InputTransaction) *types.Response
+}
+
+func NewService(ctx context.Context, redis redis.IRedis, repository repository.IRepository, aiClient *ai.AiClient) IService {
+	return &Service{
+		rp:    repository,
+		redis: redis,
+		ctx:   ctx,
+		ai:    aiClient,
+	}
+}
