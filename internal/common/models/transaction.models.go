@@ -19,7 +19,7 @@ const (
 
 type User struct {
 	gorm.Model
-	PhoneNumber string `gorm:"type:varchar(20);uniqueIndex;not null" json:"phone_number"`
+	PhoneNumber string `gorm:"type:varchar(50);uniqueIndex;not null" json:"phone_number"`
 	Name        string `gorm:"type:varchar(100)" json:"name"`
 
 	// Relations (Has Many)

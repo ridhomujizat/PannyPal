@@ -168,7 +168,7 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 	}
 
 	messageResult := "*Summary*:\n\n" + result.Message +
-		"_Balas dengan 'save', 'edit', atau 'cancel'._"
+		"Balas dengan _'save'_, _'edit'_, atau _'cancel'_."
 	OutgiingMessage.Message = messageResult
 	OutgiingMessage.ReplyToMessage = &payload.MessageId
 
@@ -339,8 +339,8 @@ func (s *Service) EditTransaction(payload dto.PayloadAICashflow, messageToReply 
 		return
 	}
 
-	messageBot := "*Summary Edited:*:\n\n" + result.Message + "\n\n" +
-		"_Balas dengan 'save', 'edit', atau 'cancel'._"
+	messageBot := "*Summary Edited:*\n\n" + result.Message + "\n\n" +
+		"Balas dengan _'save'_, _'edit'_, atau _'cancel'_."
 	OutgiingMessage.Message = messageBot
 	OutgiingMessage.ReplyToMessage = &payload.MessageId
 
