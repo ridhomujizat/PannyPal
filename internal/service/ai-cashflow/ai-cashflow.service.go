@@ -10,21 +10,36 @@ import (
 	"pannypal/internal/pkg/helper"
 	"pannypal/internal/service/ai-cashflow/dto"
 	dtoOutgoingMessage "pannypal/internal/service/outgoing/dto"
-	dtoTransaction "pannypal/internal/service/transaction/dto"
 )
 
 func (s *Service) InputTransaction(payload dto.InputTransaction) *types.Response {
-	user, err := s.GetUser(payload.PhoneNumber)
-	if err != nil {
-		return helper.ParseResponse(&types.Response{
-			Code:    http.StatusInternalServerError,
-			Message: "Failed to get or create user",
-			Error:   err,
-			Data:    nil,
-		})
+	// user, err := s.GetUser(payload.PhoneNumber)
+	// if err != nil {
+	// 	return helper.ParseResponse(&types.Response{
+	// 		Code:    http.StatusInternalServerError,
+	// 		Message: "Failed to get or create user",
+	// 		Error:   err,
+	// 		Data:    nil,
+	// 	})
+	// }
+	categoryID1 := 1
+	categoryID2 := 2
+	req := []dto.TransactionPayload{
+		{
+			Amount:      10000,
+			CategoryId:  categoryID1,
+			Type:        "EXPENSE",
+			Description: "MAKANAN SLEBEW",
+		},
+		{
+			Amount:      5000,
+			CategoryId:  categoryID2,
+			Type:        "INCOME",
+			Description: "Freelance project",
+		},
 	}
 
-	prompt, err := s.promptUserTransactionInput(payload.Message)
+	prompt, err := s.promptUserTransactionInputEdit(payload.Message, req)
 	if err != nil {
 		return helper.ParseResponse(&types.Response{
 			Code:    http.StatusInternalServerError,
@@ -69,40 +84,40 @@ func (s *Service) InputTransaction(payload dto.InputTransaction) *types.Response
 		})
 	}
 
-	if !payload.SaveAsDraft {
-		// Validate category exists
-		validCategoryID, err := s.validateOrCreateCategory(result.ReqPayload.CategoryId)
-		if err != nil {
-			return helper.ParseResponse(&types.Response{
-				Code:    http.StatusInternalServerError,
-				Message: "Failed to validate category",
-				Error:   err,
-				Data:    nil,
-			})
-		}
+	// if !payload.SaveAsDraft {
+	// 	// Validate category exists
+	// 	validCategoryID, err := s.validateOrCreateCategory(result.ReqPayload.CategoryId)
+	// 	if err != nil {
+	// 		return helper.ParseResponse(&types.Response{
+	// 			Code:    http.StatusInternalServerError,
+	// 			Message: "Failed to validate category",
+	// 			Error:   err,
+	// 			Data:    nil,
+	// 		})
+	// 	}
 
-		model := models.Transaction{
-			UserID:      user.ID,
-			Type:        models.TransactionType(result.ReqPayload.Type),
-			Amount:      result.ReqPayload.Amount,
-			CategoryID:  validCategoryID,
-			Description: result.ReqPayload.Description,
-		}
-		_, err = s.rp.Transaction.CreateTransaction(model)
-		if err != nil {
-			return helper.ParseResponse(&types.Response{
-				Code:    http.StatusInternalServerError,
-				Message: "Failed to create transaction",
-				Error:   err,
-				Data:    nil,
-			})
-		}
-		return helper.ParseResponse(&types.Response{
-			Code:    http.StatusOK,
-			Message: "Transaction created successfully",
-			Data:    result,
-		})
-	}
+	// 	model := models.Transaction{
+	// 		UserID:      user.ID,
+	// 		Type:        models.TransactionType(result.ReqPayload.Type),
+	// 		Amount:      result.ReqPayload.Amount,
+	// 		CategoryID:  validCategoryID,
+	// 		Description: result.ReqPayload.Description,
+	// 	}
+	// 	_, err = s.rp.Transaction.CreateTransaction(model)
+	// 	if err != nil {
+	// 		return helper.ParseResponse(&types.Response{
+	// 			Code:    http.StatusInternalServerError,
+	// 			Message: "Failed to create transaction",
+	// 			Error:   err,
+	// 			Data:    nil,
+	// 		})
+	// 	}
+	// 	return helper.ParseResponse(&types.Response{
+	// 		Code:    http.StatusOK,
+	// 		Message: "Transaction created successfully",
+	// 		Data:    result,
+	// 	})
+	// }
 
 	return helper.ParseResponse(&types.Response{
 		Code:    http.StatusOK,
@@ -113,33 +128,43 @@ func (s *Service) InputTransaction(payload dto.InputTransaction) *types.Response
 }
 
 func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
-
-	//xample
-	categoryID1 := 1
-	categoryID2 := 2
-	req := []dtoTransaction.CreateTransactionRequest{
-		{
-			Amount:      10000,
-			CategoryID:  &categoryID1,
-			Type:        "EXPENSE",
-			Description: "Lunch at restaurant",
-		},
-		{
-			Amount:      5000,
-			CategoryID:  &categoryID2,
-			Type:        "INCOME",
-			Description: "Freelance project",
-		},
-	}
-	messageBot := fmt.Sprintf("HASIL AI \n\n%v\n\nSilakan tinjau dan simpan draft ini jika sudah sesuai.", req)
-
 	OutgiingMessage := dtoOutgoingMessage.PayloadOutgoing{
-		Message:        messageBot,
 		ReplyToMessage: &payload.MessageId,
 		Type:           "TEXT",
 		AccountId:      payload.From,
 		To:             payload.To,
 	}
+
+	prompt, err := s.promptUserTransactionInput(payload.Message)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+
+	aiResponse, err := s.ai.GeminiPrompt(prompt)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+	if aiResponse == nil {
+		OutgiingMessage.Message = "Maaf, saya tidak dapat memahami permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+
+	var result dto.TransactionResponseAi
+	cleanResponse := s.cleanAIResponse(*aiResponse)
+	err = json.Unmarshal([]byte(cleanResponse), &result)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses data transaksi."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+
+	OutgiingMessage.Message = result.Message
+	OutgiingMessage.ReplyToMessage = &payload.MessageId
 
 	outResponse, err := s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
 	if err != nil {
@@ -151,23 +176,30 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 		return
 	}
 
-	reqBytes, err := json.Marshal(req)
+	reqBytes, err := json.Marshal(result.ReqPayload)
 	if err != nil {
 		fmt.Println("Error marshaling request:", err)
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses data transaksi."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
 		return
 	}
 	rawMessage := json.RawMessage(reqBytes)
 
+	messageResult := "**Summary:**:\n\n" + result.Message + "\n\n" +
+		"Balas dengan 'save', 'edit', atau 'cancel'."
+
 	modelMessageToReply := models.MessageToReply{
 		MessageID:   outResponse.Id,
 		FeatureType: enum.FeatureTypeAIcashflow,
-		Messsage:    messageBot,
+		Messsage:    messageResult,
 		Additional:  &rawMessage,
 	}
 
 	saveTODraft, err := s.rp.Bot.CreateMessageToReply(modelMessageToReply)
 	if err != nil {
 		fmt.Println("Error saving MessageToReply:", err)
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat menyimpan draft pesan."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
 		return
 	}
 	fmt.Println("MessageToReply saved:", saveTODraft)
@@ -214,7 +246,7 @@ func (s *Service) SaveTransaction(payload dto.PayloadAICashflow, messageToReply 
 		return
 	}
 
-	dataTransaction, err := helper.JSONToStruct[[]dtoTransaction.CreateTransactionRequest](messageToReply.Additional)
+	dataTransaction, err := helper.JSONToStruct[[]dto.TransactionPayload](messageToReply.Additional)
 	if err != nil {
 		fmt.Println("Error converting JSON to struct:", err)
 		return
@@ -224,7 +256,7 @@ func (s *Service) SaveTransaction(payload dto.PayloadAICashflow, messageToReply 
 		return
 	}
 	for _, tx := range *dataTransaction {
-		validCategoryID, err := s.validateOrCreateCategory(*tx.CategoryID)
+		validCategoryID, err := s.validateOrCreateCategory(tx.CategoryId)
 		if err != nil {
 			fmt.Println("Failed to validate category:", err)
 			return
@@ -268,33 +300,45 @@ func (s *Service) SaveTransaction(payload dto.PayloadAICashflow, messageToReply 
 }
 
 func (s *Service) EditTransaction(payload dto.PayloadAICashflow, messageToReply models.MessageToReply) {
-	// Implementation of edit transaction
-	//xample
-	categoryID1 := 1
-	categoryID2 := 2
-	req := []dtoTransaction.CreateTransactionRequest{
-		{
-			Amount:      10000,
-			CategoryID:  &categoryID1,
-			Type:        "EXPENSE",
-			Description: "SLEBEW",
-		},
-		{
-			Amount:      5000,
-			CategoryID:  &categoryID2,
-			Type:        "INCOME",
-			Description: "Freelance project",
-		},
-	}
-	messageBot := fmt.Sprintf("Draft transaksi cashflow telah dibuat berdasarkan pesan Anda:\n\n%v\n\nSilakan tinjau dan simpan draft ini jika sudah sesuai.", req)
 
 	OutgiingMessage := dtoOutgoingMessage.PayloadOutgoing{
-		Message:        messageBot,
 		ReplyToMessage: &payload.MessageId,
 		Type:           "TEXT",
 		AccountId:      payload.From,
 		To:             payload.To,
 	}
+
+	prompt, err := s.promptUserTransactionInputEdit(payload.Message, messageToReply.Additional)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+
+	aiResponse, err := s.ai.GeminiPrompt(prompt)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+	if aiResponse == nil {
+		OutgiingMessage.Message = "Maaf, saya tidak dapat memahami permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+
+	var result dto.TransactionResponseAi
+	cleanResponse := s.cleanAIResponse(*aiResponse)
+	err = json.Unmarshal([]byte(cleanResponse), &result)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses data transaksi."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+
+	OutgiingMessage.Message = result.Message
+	OutgiingMessage.ReplyToMessage = &payload.MessageId
+
 	outResponse, err := s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
 	if err != nil {
 		fmt.Println("Error sending message:", err)
@@ -305,14 +349,16 @@ func (s *Service) EditTransaction(payload dto.PayloadAICashflow, messageToReply 
 		return
 	}
 
-	reqBytes, err := json.Marshal(req)
+	reqBytes, err := json.Marshal(result.ReqPayload)
 	if err != nil {
 		fmt.Println("Error marshaling request:", err)
 		return
 	}
 	rawMessage := json.RawMessage(reqBytes)
 
-	// Update existing MessageToReply with new draft
+	messageBot := "**Summary Edited:**:\n\n" + result.Message + "\n\n" +
+		"Balas dengan 'save', 'edit', atau 'cancel'."
+
 	messageToReply.MessageID = outResponse.Id
 	messageToReply.Messsage = messageBot
 	messageToReply.Additional = &rawMessage

@@ -9,15 +9,16 @@ type InputTransaction struct {
 }
 
 type TransactionResponseAi struct {
-	Message    string `json:"message"`
-	ReqPayload struct {
-		Type        string  `json:"type"`
-		Amount      float64 `json:"amount"`
-		CategoryId  int     `json:"category_id"`
-		Description string  `json:"description"`
-	} `json:"req_payload"`
+	Message    string               `json:"message"`
+	ReqPayload []TransactionPayload `json:"req_payload"`
 }
 
+type TransactionPayload struct {
+	Type        string  `json:"type"`
+	Amount      float64 `json:"amount"`
+	CategoryId  int     `json:"category_id"`
+	Description string  `json:"description"`
+}
 type PayloadAICashflow struct {
 	TypeBot   enum.BotType `json:"type_bot"`
 	Message   string       `json:"message"`

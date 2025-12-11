@@ -11,35 +11,99 @@ func (s *Service) promptUserTransactionInput(input string) (string, error) {
 		return "", err
 	}
 
-	categoriesJSON, err := json.Marshal(categoryList)
+	// Buat mapping sederhana hanya ID dan Name untuk hemat token
+	simplifiedCategories := make([]map[string]interface{}, len(categoryList))
+	for i, cat := range categoryList {
+		simplifiedCategories[i] = map[string]interface{}{
+			"id":   cat.ID,
+			"name": cat.Name,
+		}
+	}
+
+	categoriesJSON, err := json.Marshal(simplifiedCategories)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(`You are a JSON-only transaction parser. Return ONLY valid JSON, no explanations.
+
+INPUT: "%s"
+
+CATEGORIES: %s
+
+OUTPUT FORMAT:
+{
+  "message": "",
+  "req_payload": [{
+    "type": "",
+    "amount": 0,
+    "category_id": 0,
+    "description": ""
+  }]
+}
+
+RULES:
+- type: "EXPENSE" or "INCOME"
+- amount: integer only
+- category_id: match from categories list
+- description: original item name
+- message format:
+  * EXPENSE: "✅ Tercatat pengeluaran\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
+  * INCOME: "💰 Tercatat pemasukan\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
+- Multiple transactions: array of objects in req_payload
+- Return ONLY the JSON object, nothing else`, input, string(categoriesJSON)), nil
+}
+
+func (s *Service) promptUserTransactionInputEdit(input string, existJson interface{}) (string, error) {
+	categoryList, err := s.rp.Category.GetAllCategories()
 	if err != nil {
 		return "", err
 	}
 
-	return fmt.Sprintf(`Kamu adalah asisten keuangan. Parse input transaksi berikut dan kembalikan HANYA JSON tanpa penjelasan tambahan.
-
-	Input: "%s"
-
-	Categories yang tersedia:
-	%s
-
-	Instruksi:
-	1. Tentukan apakah ini EXPENSE (Pengeluaran) atau INCOME (Pemasukan)
-	2. Ekstrak jumlah uang (amount) sebagai integer (e.g., 50000)
-	3. Pilih category_id yang paling sesuai dari daftar categories
-	4. Buat 'message' yang ramah dalam Bahasa Indonesia. Formatnya harus: 
-	- EXPENSE: "Pengeluaran [nama item] Rp. [amount dengan titik pemisah ribuan] dengan category [nama kategori]"
-	- INCOME: "Pemasukan [nama item] Rp. [amount dengan titik pemisah ribuan] dengan category [nama kategori]"
-	(e.g., "Pengeluaran Nasi Padang Rp. 50.000 dengan category Makanan")
-
-	Response format (HANYA JSON ini, tanpa markdown, kode blok, atau teks lain):
-	{
-	"message": "string dengan format yang diminta",
-	"req_payload": {
-		"type": "EXPENSE atau INCOME",
-		"amount": integer,
-		"category_id": integer,
-		"description": "string deskripsi singkat"
+	// Buat mapping sederhana hanya ID dan Name untuk hemat token
+	simplifiedCategories := make([]map[string]interface{}, len(categoryList))
+	for i, cat := range categoryList {
+		simplifiedCategories[i] = map[string]interface{}{
+			"id":   cat.ID,
+			"name": cat.Name,
+		}
 	}
-	}`, input, string(categoriesJSON)), nil
+
+	categoriesJSON, err := json.Marshal(simplifiedCategories)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf(`You are a JSON-only transaction parser. Return ONLY valid JSON, no explanations.
+
+EXISTING DATA: %s
+
+INPUT: "%s"
+
+CATEGORIES: %s
+
+OUTPUT FORMAT:
+{
+  "message": "",
+  "req_payload": [{
+    "type": "",
+    "amount": 0,
+    "category_id": 0,
+    "description": ""
+  }]
+}
+
+RULES:
+- MERGE strategy: Keep ALL existing transactions, only UPDATE matching ones
+- Match transaction by description (case-insensitive partial match)
+- If INPUT matches existing description: UPDATE that transaction
+- If INPUT is new: ADD to array
+- If INPUT doesn't mention existing transaction: KEEP it unchanged
+- type: "EXPENSE" or "INCOME"
+- amount: integer only
+- category_id: match from categories list
+- description: item name
+- message format (for updated/new items only):
+  * EXPENSE: "✅ Tercatat pengeluaran\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
+  * INCOME: "💰 Tercatat pemasukan\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
+- Return complete req_payload array with ALL transactions (existing + updated + new)
+- Return ONLY the JSON object, nothing else`, existJson, input, string(categoriesJSON)), nil
 }
