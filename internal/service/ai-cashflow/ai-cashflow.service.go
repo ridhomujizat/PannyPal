@@ -131,7 +131,7 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 			Description: "Freelance project",
 		},
 	}
-	messageBot := fmt.Sprintf("(CUMAN SAMPLE KATAKATA)Berikut adalah draft transaksi cashflow yang telah dibuat berdasarkan pesan Anda:\n\n%v\n\nSilakan tinjau dan simpan draft ini jika sudah sesuai.", req)
+	messageBot := fmt.Sprintf("HASIL AI \n\n%v\n\nSilakan tinjau dan simpan draft ini jika sudah sesuai.", req)
 
 	OutgiingMessage := dtoOutgoingMessage.PayloadOutgoing{
 		Message:        messageBot,
