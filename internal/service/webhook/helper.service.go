@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"pannypal/internal/common/enum"
+	"pannypal/internal/common/models"
 	"pannypal/internal/service/webhook/dto"
 	"strings"
 )
@@ -10,7 +11,7 @@ func (s *Service) IsCashFlowFunction(payload string) bool {
 	return strings.Contains(payload, string(enum.TagKeuangan))
 }
 
-func (s *Service) IsReplayMessage(message dto.Payloadwaha) (*enum.FeatureType, bool) {
+func (s *Service) IsReplayMessage(message dto.Payloadwaha) (*models.MessageToReply, bool) {
 	if message.Payload.Data.QuotedStanzaID == "" || message.Payload.ReplyTo == nil {
 		return nil, false
 	}
@@ -19,5 +20,5 @@ func (s *Service) IsReplayMessage(message dto.Payloadwaha) (*enum.FeatureType, b
 		return nil, false
 	}
 
-	return &check.FeatureType, true
+	return check, true
 }

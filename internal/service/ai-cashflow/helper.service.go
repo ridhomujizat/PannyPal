@@ -110,3 +110,31 @@ func (s *Service) cleanAIResponse(response string) string {
 	// Extract only the JSON part
 	return response[startIndex : endIndex+1]
 }
+
+func (s *Service) DetectAction(msg string) string {
+	msg = strings.ToLower(msg)
+
+	saveKeywords := []string{"save"}
+	cancelKeywords := []string{"cancel"}
+	editKeywords := []string{"edit"}
+
+	for _, w := range saveKeywords {
+		if strings.Contains(msg, w) {
+			return "save"
+		}
+	}
+
+	for _, w := range cancelKeywords {
+		if strings.Contains(msg, w) {
+			return "cancel"
+		}
+	}
+
+	for _, w := range editKeywords {
+		if strings.Contains(msg, w) {
+			return "edit"
+		}
+	}
+
+	return "none"
+}

@@ -142,3 +142,7 @@ func UUIDPtrToStringPtr(id *uuid.UUID) *string {
 	s := id.String()
 	return &s
 }
+
+func StringContains(parameter, value string) bool {
+	return strings.Contains(parameter, value)
+}

@@ -3,6 +3,7 @@ package aicashflow
 import (
 	"context"
 
+	"pannypal/internal/common/models"
 	types "pannypal/internal/common/type"
 	"pannypal/internal/pkg/ai-connector"
 	"pannypal/internal/pkg/redis"
@@ -22,6 +23,7 @@ type Service struct {
 type IService interface {
 	InputTransaction(payload dto.InputTransaction) *types.Response
 	PannyPalBotCashflow(payload dto.PayloadAICashflow)
+	PannyPalBotCashflowReplayAction(payload dto.PayloadAICashflow, messageToReply models.MessageToReply)
 }
 
 func NewService(ctx context.Context, redis redis.IRedis, repository repository.IRepository, aiClient *ai.AiClient, outgoingService outgoingService.IService) IService {

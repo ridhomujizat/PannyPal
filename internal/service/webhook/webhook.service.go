@@ -19,6 +19,30 @@ func (s *Service) HandleWebhookEventWaha(payload interface{}) *types.Response {
 		fmt.Println("Error parsing payload:", err)
 	}
 
+	isReplayMessage, ok := s.IsReplayMessage(*message)
+	if ok && isReplayMessage != nil {
+		switch isReplayMessage.FeatureType {
+		case enum.FeatureTypeAIcashflow:
+			payload := dtoAiCashflow.PayloadAICashflow{
+				TypeBot: enum.BotTypeWaha,
+				// From is phone number
+				From:    message.Payload.To,
+				To:      message.Payload.From,
+				Message: message.Payload.Body,
+				// MessageId is waha message id
+				MessageId: message.Payload.ID,
+				Type:      message.Payload.Data.Type,
+			}
+			go s.aiCashFlowService.PannyPalBotCashflowReplayAction(payload, *isReplayMessage)
+		default:
+			return helper.ParseResponse(&types.Response{
+				Code:    http.StatusOK,
+				Message: "HandleWebhookEventWaha success - not handled reply message feature type",
+				Data:    payload,
+			})
+		}
+	}
+
 	if isCasflowFunction := s.IsCashFlowFunction(message.Payload.Body); isCasflowFunction {
 		payload := dtoAiCashflow.PayloadAICashflow{
 			TypeBot: enum.BotTypeWaha,
