@@ -2,6 +2,8 @@ package aicashflow
 
 import (
 	"pannypal/internal/common/models"
+	"pannypal/internal/service/ai-cashflow/dto"
+	"strconv"
 	"strings"
 
 	"gorm.io/gorm"
@@ -137,4 +139,56 @@ func (s *Service) DetectAction(msg string) string {
 	}
 
 	return "none"
+}
+
+func (s *Service) generateTransactionSummary(transactions []dto.TransactionPayload) string {
+	if len(transactions) == 0 {
+		return "Tidak ada transaksi yang terdeteksi."
+	}
+
+	summary := "*Summary:*\n\n"
+
+	for _, tx := range transactions {
+		// Get category name
+		category, err := s.rp.Category.GetCategoryByID(uint(tx.CategoryId))
+		categoryName := "Unknown"
+		if err == nil && category != nil {
+			categoryName = category.Name
+		}
+
+		// Format amount with dots
+		amountStr := s.formatCurrency(int(tx.Amount))
+
+		if tx.Type == "EXPENSE" {
+			summary += "✅ Tercatat pengeluaran\n"
+		} else {
+			summary += "💰 Tercatat pemasukan\n"
+		}
+
+		summary += " n: " + tx.Description + "\n"
+		summary += " a: Rp. " + amountStr + "\n"
+		summary += " c: " + categoryName + "\n\n"
+	}
+
+	return summary
+}
+
+func (s *Service) formatCurrency(amount int) string {
+	if amount < 1000 {
+		return strconv.Itoa(amount)
+	}
+
+	// Convert to string
+	str := strconv.Itoa(amount)
+
+	// Add dots from right to left
+	result := ""
+	for i, char := range str {
+		if i > 0 && (len(str)-i)%3 == 0 {
+			result += "."
+		}
+		result += string(char)
+	}
+
+	return result
 }

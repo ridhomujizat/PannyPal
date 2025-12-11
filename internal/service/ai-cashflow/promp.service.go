@@ -32,7 +32,6 @@ CATEGORIES: %s
 
 OUTPUT FORMAT:
 {
-  "message": "",
   "req_payload": [{
     "type": "",
     "amount": 0,
@@ -46,9 +45,6 @@ RULES:
 - amount: integer only
 - category_id: match from categories list
 - description: original item name
-- message format:
-  * EXPENSE: "✅ Tercatat pengeluaran\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
-  * INCOME: "💰 Tercatat pemasukan\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
 - Multiple transactions: array of objects in req_payload
 - Return ONLY the JSON object, nothing else`, input, string(categoriesJSON)), nil
 }
@@ -82,7 +78,6 @@ CATEGORIES: %s
 
 OUTPUT FORMAT:
 {
-  "message": "",
   "req_payload": [{
 	"type": "",
 	"amount": 0,
@@ -101,9 +96,6 @@ RULES:
 - amount: integer only
 - category_id: match from categories list
 - description: item name
-- message format:
-  * EXPENSE: "✅ Tercatat pengeluaran\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
-  * INCOME: "💰 Tercatat pemasukan\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
 - Return complete req_payload array with ALL transactions (existing + updated + new)
 - Return ONLY the JSON object, nothing else`, existJson, input, string(categoriesJSON)), nil
 }

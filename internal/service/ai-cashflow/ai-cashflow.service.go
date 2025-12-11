@@ -167,8 +167,9 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 		return
 	}
 
-	messageResult := "*Summary*:\n\n" + result.Message +
-		"Balas dengan _'save'_, _'edit'_, atau _'cancel'_."
+	// Generate message from ReqPayload to save AI tokens
+	messageResult := s.generateTransactionSummary(result.ReqPayload)
+	messageResult += "\n\nBalas dengan _'save'_, _'edit'_, atau _'cancel'_."
 	OutgiingMessage.Message = messageResult
 	OutgiingMessage.ReplyToMessage = &payload.MessageId
 
@@ -339,8 +340,9 @@ func (s *Service) EditTransaction(payload dto.PayloadAICashflow, messageToReply 
 		return
 	}
 
-	messageBot := "*Summary Edited:*\n\n" + result.Message + "\n\n" +
-		"Balas dengan _'save'_, _'edit'_, atau _'cancel'_."
+	// Generate message from ReqPayload to save AI tokens
+	messageBot := "*Summary Edited:*\n\n" + s.generateTransactionSummary(result.ReqPayload)
+	messageBot += "\n\nBalas dengan _'save'_, _'edit'_, atau _'cancel'_."
 	OutgiingMessage.Message = messageBot
 	OutgiingMessage.ReplyToMessage = &payload.MessageId
 

@@ -9,7 +9,6 @@ type InputTransaction struct {
 }
 
 type TransactionResponseAi struct {
-	Message    string               `json:"message"`
 	ReqPayload []TransactionPayload `json:"req_payload"`
 }
 
