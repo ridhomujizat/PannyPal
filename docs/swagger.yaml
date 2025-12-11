@@ -202,21 +202,50 @@ definitions:
       year:
         type: integer
     type: object
+  dto.PayloadAICashflow:
+    properties:
+      from:
+        type: string
+      message:
+        type: string
+      message_id:
+        type: string
+      to:
+        type: string
+      type:
+        type: string
+      type_bot:
+        $ref: '#/definitions/enum.BotType'
+    type: object
+  dto.ReplayActionSimpleRequest:
+    properties:
+      payload:
+        $ref: '#/definitions/dto.PayloadAICashflow'
+      quoted_stanza_id:
+        type: string
+    required:
+    - payload
+    - quoted_stanza_id
+    type: object
+  dto.TransactionPayload:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: integer
+      description:
+        type: string
+      type:
+        type: string
+    type: object
   dto.TransactionResponseAi:
     properties:
       message:
         type: string
       req_payload:
-        properties:
-          amount:
-            type: number
-          category_id:
-            type: integer
-          description:
-            type: string
-          type:
-            type: string
-        type: object
+        items:
+          $ref: '#/definitions/dto.TransactionPayload'
+        type: array
     type: object
   dto.TransactionSummaryResponse:
     properties:
@@ -308,6 +337,12 @@ definitions:
       year:
         type: integer
     type: object
+  enum.BotType:
+    enum:
+    - WAHA
+    type: string
+    x-enum-varnames:
+    - BotTypeWaha
   models.TransactionType:
     enum:
     - INCOME
@@ -356,6 +391,59 @@ info:
   title: Cash Flow API
   version: "1.0"
 paths:
+  /ai-cashflow/bot:
+    post:
+      consumes:
+      - application/json
+      description: Process cashflow transaction through PannyPal Bot
+      parameters:
+      - description: Bot cashflow payload
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/dto.PayloadAICashflow'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Request processed successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Process PannyPal Bot Cashflow
+      tags:
+      - AI Cashflow APIs
+  /ai-cashflow/bot/reply-action:
+    post:
+      consumes:
+      - application/json
+      description: Process reply action for bot cashflow transaction (save, edit,
+        cancel)
+      parameters:
+      - description: Reply action request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ReplayActionSimpleRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Reply action processed successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Process PannyPal Bot Cashflow Reply Action
+      tags:
+      - AI Cashflow APIs
   /ai-cashflow/transaction:
     post:
       consumes:

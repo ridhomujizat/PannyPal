@@ -24,6 +24,7 @@ type IService interface {
 	InputTransaction(payload dto.InputTransaction) *types.Response
 	PannyPalBotCashflow(payload dto.PayloadAICashflow)
 	PannyPalBotCashflowReplayAction(payload dto.PayloadAICashflow, messageToReply models.MessageToReply)
+	ReplayAction(payload dto.PayloadAICashflow, quotedStanzaID string) *types.Response
 }
 
 func NewService(ctx context.Context, redis redis.IRedis, repository repository.IRepository, aiClient *ai.AiClient, outgoingService outgoingService.IService) IService {

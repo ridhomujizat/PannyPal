@@ -84,10 +84,10 @@ OUTPUT FORMAT:
 {
   "message": "",
   "req_payload": [{
-    "type": "",
-    "amount": 0,
-    "category_id": 0,
-    "description": ""
+	"type": "",
+	"amount": 0,
+	"category_id": 0,
+	"description": ""
   }]
 }
 
@@ -101,7 +101,7 @@ RULES:
 - amount: integer only
 - category_id: match from categories list
 - description: item name
-- message format (for updated/new items only):
+- message format:
   * EXPENSE: "✅ Tercatat pengeluaran\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
   * INCOME: "💰 Tercatat pemasukan\n n: [description]\n a: Rp. [amount]\n c: [category_name]\n\n"
 - Return complete req_payload array with ALL transactions (existing + updated + new)

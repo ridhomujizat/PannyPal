@@ -139,6 +139,7 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 	if err != nil {
 		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
 		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error generating prompt:", err)
 		return
 	}
 
@@ -146,11 +147,13 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 	if err != nil {
 		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
 		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error getting AI response:", err)
 		return
 	}
 	if aiResponse == nil {
 		OutgiingMessage.Message = "Maaf, saya tidak dapat memahami permintaan Anda."
 		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("AI response is empty")
 		return
 	}
 
@@ -160,10 +163,13 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 	if err != nil {
 		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses data transaksi."
 		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error unmarshaling AI response:", err)
 		return
 	}
 
-	OutgiingMessage.Message = result.Message
+	messageResult := "*Summary*:\n\n" + result.Message +
+		"_Balas dengan 'save', 'edit', atau 'cancel'._"
+	OutgiingMessage.Message = messageResult
 	OutgiingMessage.ReplyToMessage = &payload.MessageId
 
 	outResponse, err := s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
@@ -184,9 +190,6 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 		return
 	}
 	rawMessage := json.RawMessage(reqBytes)
-
-	messageResult := "**Summary:**:\n\n" + result.Message + "\n\n" +
-		"Balas dengan 'save', 'edit', atau 'cancel'."
 
 	modelMessageToReply := models.MessageToReply{
 		MessageID:   outResponse.Id,
@@ -336,7 +339,9 @@ func (s *Service) EditTransaction(payload dto.PayloadAICashflow, messageToReply 
 		return
 	}
 
-	OutgiingMessage.Message = result.Message
+	messageBot := "*Summary Edited:*:\n\n" + result.Message + "\n\n" +
+		"_Balas dengan 'save', 'edit', atau 'cancel'._"
+	OutgiingMessage.Message = messageBot
 	OutgiingMessage.ReplyToMessage = &payload.MessageId
 
 	outResponse, err := s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
@@ -355,9 +360,6 @@ func (s *Service) EditTransaction(payload dto.PayloadAICashflow, messageToReply 
 		return
 	}
 	rawMessage := json.RawMessage(reqBytes)
-
-	messageBot := "**Summary Edited:**:\n\n" + result.Message + "\n\n" +
-		"Balas dengan 'save', 'edit', atau 'cancel'."
 
 	messageToReply.MessageID = outResponse.Id
 	messageToReply.Messsage = messageBot
@@ -393,4 +395,31 @@ func (s *Service) CancelTransaction(payload dto.PayloadAICashflow, messageToRepl
 		fmt.Println("Error sending cancellation message:", err)
 		return
 	}
+}
+
+func (s *Service) ReplayAction(payload dto.PayloadAICashflow, quotedStanzaID string) *types.Response {
+	messageToReply, err := s.rp.Bot.MessageToReplyMessage(quotedStanzaID)
+	if err != nil {
+		return helper.ParseResponse(&types.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to get MessageToReply",
+			Error:   err,
+			Data:    nil,
+		})
+	}
+	if messageToReply == nil {
+		return helper.ParseResponse(&types.Response{
+			Code:    http.StatusBadRequest,
+			Message: "No MessageToReply found for the given ID",
+			Data:    nil,
+		})
+	}
+
+	s.PannyPalBotCashflowReplayAction(payload, *messageToReply)
+
+	return helper.ParseResponse(&types.Response{
+		Code:    http.StatusOK,
+		Message: "Replay action processed successfully",
+		Data:    nil,
+	})
 }

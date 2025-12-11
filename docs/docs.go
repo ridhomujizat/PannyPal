@@ -24,6 +24,86 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/ai-cashflow/bot": {
+            "post": {
+                "description": "Process cashflow transaction through PannyPal Bot",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Cashflow APIs"
+                ],
+                "summary": "Process PannyPal Bot Cashflow",
+                "parameters": [
+                    {
+                        "description": "Bot cashflow payload",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.PayloadAICashflow"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Request processed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/ai-cashflow/bot/reply-action": {
+            "post": {
+                "description": "Process reply action for bot cashflow transaction (save, edit, cancel)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI Cashflow APIs"
+                ],
+                "summary": "Process PannyPal Bot Cashflow Reply Action",
+                "parameters": [
+                    {
+                        "description": "Reply action request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ReplayActionSimpleRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Reply action processed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/ai-cashflow/transaction": {
             "post": {
                 "description": "Create a new transaction using AI processing",
@@ -1378,6 +1458,61 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.PayloadAICashflow": {
+            "type": "object",
+            "properties": {
+                "from": {
+                    "type": "string"
+                },
+                "message": {
+                    "type": "string"
+                },
+                "message_id": {
+                    "type": "string"
+                },
+                "to": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                },
+                "type_bot": {
+                    "$ref": "#/definitions/enum.BotType"
+                }
+            }
+        },
+        "dto.ReplayActionSimpleRequest": {
+            "type": "object",
+            "required": [
+                "payload",
+                "quoted_stanza_id"
+            ],
+            "properties": {
+                "payload": {
+                    "$ref": "#/definitions/dto.PayloadAICashflow"
+                },
+                "quoted_stanza_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.TransactionPayload": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "category_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.TransactionResponseAi": {
             "type": "object",
             "properties": {
@@ -1385,20 +1520,9 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "req_payload": {
-                    "type": "object",
-                    "properties": {
-                        "amount": {
-                            "type": "number"
-                        },
-                        "category_id": {
-                            "type": "integer"
-                        },
-                        "description": {
-                            "type": "string"
-                        },
-                        "type": {
-                            "type": "string"
-                        }
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/dto.TransactionPayload"
                     }
                 }
             }
@@ -1537,6 +1661,15 @@ const docTemplate = `{
                     "type": "integer"
                 }
             }
+        },
+        "enum.BotType": {
+            "type": "string",
+            "enum": [
+                "WAHA"
+            ],
+            "x-enum-varnames": [
+                "BotTypeWaha"
+            ]
         },
         "models.TransactionType": {
             "type": "string",
