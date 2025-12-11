@@ -8,13 +8,15 @@ import (
 	"pannypal/internal/pkg/redis"
 	"pannypal/internal/repository"
 	"pannypal/internal/service/ai-cashflow/dto"
+	outgoingService "pannypal/internal/service/outgoing"
 )
 
 type Service struct {
-	rp    repository.IRepository
-	redis redis.IRedis
-	ctx   context.Context
-	ai    *ai.AiClient
+	rp              repository.IRepository
+	redis           redis.IRedis
+	ctx             context.Context
+	ai              *ai.AiClient
+	outgoingService outgoingService.IService
 }
 
 type IService interface {
@@ -22,11 +24,12 @@ type IService interface {
 	PannyPalBotCashflow(payload dto.PayloadAICashflow)
 }
 
-func NewService(ctx context.Context, redis redis.IRedis, repository repository.IRepository, aiClient *ai.AiClient) IService {
+func NewService(ctx context.Context, redis redis.IRedis, repository repository.IRepository, aiClient *ai.AiClient, outgoingService outgoingService.IService) IService {
 	return &Service{
-		rp:    repository,
-		redis: redis,
-		ctx:   ctx,
-		ai:    aiClient,
+		rp:              repository,
+		redis:           redis,
+		ctx:             ctx,
+		ai:              aiClient,
+		outgoingService: outgoingService,
 	}
 }

@@ -19,6 +19,7 @@ type Repository struct {
 type IRepository interface {
 	CreateMessageToReply(d models.MessageToReply) (*models.MessageToReply, error)
 	MessageToReplyMessage(messageID string) (*models.MessageToReply, error)
+	GetBotByAccountID(accountID string) (*models.AccountBot, error)
 }
 
 func NewRepo(ctx context.Context, redis redis.IRedis, db *database.Database) IRepository {
@@ -45,4 +46,16 @@ func (r *Repository) MessageToReplyMessage(messageID string) (*models.MessageToR
 		return nil, err
 	}
 	return &data, nil
+}
+
+func (s *Repository) GetBotByAccountID(accountID string) (*models.AccountBot, error) {
+	var bot models.AccountBot
+	err := s.db.WithContext(s.ctx).Where("account_id = ?", accountID).First(&bot).Error
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &bot, nil
 }

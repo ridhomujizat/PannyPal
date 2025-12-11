@@ -17,8 +17,9 @@ type MessageToReply struct {
 
 type AccountBot struct {
 	gorm.Model
-	AccountID uint   `gorm:"type:bigint;index" json:"account_id"`
-	BotType   string `gorm:"type:varchar(50)" json:"bot_type"`
-	BaseURL   string `gorm:"type:varchar(255)" json:"base_url"`
-	Key       string `gorm:"type:varchar(255)" json:"key"`
+	AccountID string       `gorm:"type:varchar(100);index" json:"account_id"`
+	BotType   enum.BotType `gorm:"type:varchar(50)" json:"bot_type"`
+	BaseURL   string       `gorm:"type:varchar(255)" json:"base_url"`
+	Key       string       `gorm:"type:varchar(255)" json:"key"`
+	SessionID string       `gorm:"type:varchar(255)" json:"session_id"`
 }

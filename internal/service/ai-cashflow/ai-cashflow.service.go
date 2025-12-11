@@ -9,6 +9,7 @@ import (
 	types "pannypal/internal/common/type"
 	"pannypal/internal/pkg/helper"
 	"pannypal/internal/service/ai-cashflow/dto"
+	dtoOutgoingMessage "pannypal/internal/service/outgoing/dto"
 	dtoTransaction "pannypal/internal/service/transaction/dto"
 )
 
@@ -112,10 +113,8 @@ func (s *Service) InputTransaction(payload dto.InputTransaction) *types.Response
 }
 
 func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
-	fmt.Println("PannyPalBotCashflow payload:", payload)
 
 	//xample
-	messageBot := "Sure, here are the transactions you requested:\n\n1. Expense: $100.00 for Lunch at restaurant\n2. Income: $50.00 from Freelance project\n\nLet me know if you need anything else!"
 	categoryID1 := 1
 	categoryID2 := 2
 	req := []dtoTransaction.CreateTransactionRequest{
@@ -132,6 +131,25 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 			Description: "Freelance project",
 		},
 	}
+	messageBot := fmt.Sprintf("(CUMAN SAMPLE KATAKATA)Berikut adalah draft transaksi cashflow yang telah dibuat berdasarkan pesan Anda:\n\n%v\n\nSilakan tinjau dan simpan draft ini jika sudah sesuai.", req)
+
+	OutgiingMessage := dtoOutgoingMessage.PayloadOutgoing{
+		Message:        messageBot,
+		ReplyToMessage: &payload.MessageId,
+		Type:           "TEXT",
+		AccountId:      payload.From,
+		To:             payload.To,
+	}
+
+	outResponse, err := s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+	if err != nil {
+		fmt.Println("Error sending message:", err)
+		return
+	}
+	if outResponse == nil {
+		fmt.Println("No response from outgoing service")
+		return
+	}
 
 	reqBytes, err := json.Marshal(req)
 	if err != nil {
@@ -141,7 +159,7 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 	rawMessage := json.RawMessage(reqBytes)
 
 	modelMessageToReply := models.MessageToReply{
-		MessageID:   payload.MessageId,
+		MessageID:   outResponse.Id,
 		FeatureType: enum.FeatureTypeAIcashflow,
 		Messsage:    messageBot,
 		Additional:  &rawMessage,

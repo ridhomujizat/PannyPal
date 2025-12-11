@@ -27,6 +27,7 @@ import (
 	analyticsService "pannypal/internal/service/analytics"
 	budgetService "pannypal/internal/service/budget"
 	categoryService "pannypal/internal/service/category"
+	outgoingService "pannypal/internal/service/outgoing"
 	transactionService "pannypal/internal/service/transaction"
 	webhookService "pannypal/internal/service/webhook"
 	"sync"
@@ -127,7 +128,8 @@ func InitRoutes(
 	categorySvc := categoryService.NewService(ctx, redis, rp)
 	budgetSvc := budgetService.NewService(ctx, redis, rp)
 	analyticsSvc := analyticsService.NewService(ctx, redis, rp, db)
-	aiCashflowSvc := aicashflowService.NewService(ctx, redis, rp, ai)
+	outgoingSvc := outgoingService.NewService(ctx, redis, rp)
+	aiCashflowSvc := aicashflowService.NewService(ctx, redis, rp, ai, outgoingSvc)
 	webhookSvc := webhookService.NewService(ctx, redis, rp, aiCashflowSvc)
 
 	// init handlers

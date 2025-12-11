@@ -1,5 +1,7 @@
 package dto
 
+import "pannypal/internal/common/enum"
+
 type InputTransaction struct {
 	PhoneNumber string `json:"phone_number" binding:"required"`
 	Message     string `json:"message" binding:"required"`
@@ -17,10 +19,10 @@ type TransactionResponseAi struct {
 }
 
 type PayloadAICashflow struct {
-	TypeBot   string `json:"type_bot"`
-	Message   string `json:"message"`
-	Type      string `json:"type"`
-	MessageId string `json:"message_id"`
-	From      string `json:"from"`
-	To        string `json:"to"`
+	TypeBot   enum.BotType `json:"type_bot"`
+	Message   string       `json:"message"`
+	Type      string       `json:"type"`
+	MessageId string       `json:"message_id"`
+	From      string       `json:"from"`
+	To        string       `json:"to"`
 }

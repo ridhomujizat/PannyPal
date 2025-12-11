@@ -4,6 +4,7 @@ import (
 	"context"
 	"pannypal/internal/pkg/redis"
 	"pannypal/internal/repository"
+	"pannypal/internal/service/outgoing/dto"
 )
 
 type Service struct {
@@ -12,6 +13,7 @@ type Service struct {
 	rp    repository.IRepository
 }
 type IService interface {
+	HandleWebhookEventWaha(payload dto.PayloadOutgoing) (*dto.ResponseOutgoing, error)
 }
 
 func NewService(ctx context.Context, redis redis.IRedis, repository repository.IRepository) IService {

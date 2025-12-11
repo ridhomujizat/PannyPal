@@ -3,6 +3,7 @@ package webhook
 import (
 	"fmt"
 	"net/http"
+	"pannypal/internal/common/enum"
 	types "pannypal/internal/common/type"
 	"pannypal/internal/pkg/helper"
 	dtoAiCashflow "pannypal/internal/service/ai-cashflow/dto"
@@ -20,10 +21,10 @@ func (s *Service) HandleWebhookEventWaha(payload interface{}) *types.Response {
 
 	if isCasflowFunction := s.IsCashFlowFunction(message.Payload.Body); isCasflowFunction {
 		payload := dtoAiCashflow.PayloadAICashflow{
-			TypeBot: "WAHA",
+			TypeBot: enum.BotTypeWaha,
 			// From is phone number
-			From:    message.Payload.From,
-			To:      message.Payload.To,
+			From:    message.Payload.To,
+			To:      message.Payload.From,
 			Message: message.Payload.Body,
 			// MessageId is waha message id
 			MessageId: message.Payload.ID,
