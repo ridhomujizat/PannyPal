@@ -15,3 +15,12 @@ type TransactionResponseAi struct {
 		Description string  `json:"description"`
 	} `json:"req_payload"`
 }
+
+type PayloadAICashflow struct {
+	TypeBot   string `json:"type_bot"`
+	Message   string `json:"message"`
+	Type      string `json:"type"`
+	MessageId string `json:"message_id"`
+	From      string `json:"from"`
+	To        string `json:"to"`
+}

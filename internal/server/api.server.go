@@ -17,6 +17,7 @@ import (
 	s3aws "pannypal/internal/pkg/storage/s3"
 	"pannypal/internal/repository"
 	"pannypal/internal/repository/analytics"
+	"pannypal/internal/repository/bot"
 	"pannypal/internal/repository/budget"
 	"pannypal/internal/repository/category"
 	logdata "pannypal/internal/repository/log-data"
@@ -119,6 +120,7 @@ func InitRoutes(
 		User:        user.NewRepo(ctx, redis, db),
 		Analytics:   analytics.NewRepo(ctx, redis, db),
 		LogData:     logdata.NewRepo(ctx, redis, db),
+		Bot:         bot.NewRepo(ctx, redis, db),
 	}
 	// init services
 	transactionSvc := transactionService.NewService(ctx, redis, rp)
@@ -126,7 +128,7 @@ func InitRoutes(
 	budgetSvc := budgetService.NewService(ctx, redis, rp)
 	analyticsSvc := analyticsService.NewService(ctx, redis, rp, db)
 	aiCashflowSvc := aicashflowService.NewService(ctx, redis, rp, ai)
-	webhookSvc := webhookService.NewService(ctx, redis, rp)
+	webhookSvc := webhookService.NewService(ctx, redis, rp, aiCashflowSvc)
 
 	// init handlers
 	transactionHandler := transactionHandler.NewHandler(ctx, rb, transactionSvc)

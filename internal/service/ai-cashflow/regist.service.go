@@ -19,6 +19,7 @@ type Service struct {
 
 type IService interface {
 	InputTransaction(payload dto.InputTransaction) *types.Response
+	PannyPalBotCashflow(payload dto.PayloadAICashflow)
 }
 
 func NewService(ctx context.Context, redis redis.IRedis, repository repository.IRepository, aiClient *ai.AiClient) IService {

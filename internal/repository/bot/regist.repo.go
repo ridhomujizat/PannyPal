@@ -1,4 +1,4 @@
-package logdata
+package bot
 
 import (
 	"context"
@@ -17,9 +17,7 @@ type Repository struct {
 }
 
 type IRepository interface {
-	CreateLogWaha(d models.LogWaha) (*models.LogWaha, error)
-	CreateLogPrompt(d models.LogPrompt) (*models.LogPrompt, error)
-	GetLogWahaByType(logType string) ([]models.LogWaha, error)
+	CreateMessageToReply(d models.MessageToReply) (*models.MessageToReply, error)
 	MessageToReplyMessage(messageID string) (*models.MessageToReply, error)
 }
 
@@ -31,28 +29,12 @@ func NewRepo(ctx context.Context, redis redis.IRedis, db *database.Database) IRe
 	}
 }
 
-func (r *Repository) CreateLogWaha(d models.LogWaha) (*models.LogWaha, error) {
+func (r *Repository) CreateMessageToReply(d models.MessageToReply) (*models.MessageToReply, error) {
 	if err := r.db.WithContext(r.ctx).Create(&d).Error; err != nil {
 		return nil, err
 	}
 	return &d, nil
 }
-
-func (r *Repository) CreateLogPrompt(d models.LogPrompt) (*models.LogPrompt, error) {
-	if err := r.db.WithContext(r.ctx).Create(&d).Error; err != nil {
-		return nil, err
-	}
-	return &d, nil
-}
-
-func (r *Repository) GetLogWahaByType(logType string) ([]models.LogWaha, error) {
-	var logs []models.LogWaha
-	if err := r.db.WithContext(r.ctx).Where("type = ?", logType).Find(&logs).Error; err != nil {
-		return nil, err
-	}
-	return logs, nil
-}
-
 func (r *Repository) MessageToReplyMessage(messageID string) (*models.MessageToReply, error) {
 	var data models.MessageToReply
 	err := r.db.WithContext(r.ctx).Where("message_id = ?", messageID).First(&data).Error

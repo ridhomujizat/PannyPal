@@ -2,6 +2,7 @@ package repository
 
 import (
 	"pannypal/internal/repository/analytics"
+	"pannypal/internal/repository/bot"
 	"pannypal/internal/repository/budget"
 	"pannypal/internal/repository/category"
 	logdata "pannypal/internal/repository/log-data"
@@ -16,4 +17,5 @@ type IRepository struct {
 	Transaction transaction.IRepository
 	Analytics   analytics.IRepository
 	LogData     logdata.IRepository
+	Bot         bot.IRepository
 }
