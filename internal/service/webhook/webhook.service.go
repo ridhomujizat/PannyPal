@@ -54,6 +54,16 @@ func (s *Service) HandleWebhookEventWaha(payload interface{}) *types.Response {
 			MessageId: message.Payload.ID,
 			Type:      message.Payload.Data.Type,
 		}
+
+		// Add media data if present
+		if message.Payload.Media != nil && message.Payload.Media.URL != "" {
+			payload.Media = &dtoAiCashflow.MediaPayload{
+				URL:      message.Payload.Media.URL,
+				Filename: message.Payload.Media.Filename,
+				MimeType: message.Payload.Media.MimeType,
+			}
+		}
+
 		go s.aiCashFlowService.PannyPalBotCashflow(payload)
 	}
 

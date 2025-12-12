@@ -19,10 +19,17 @@ type TransactionPayload struct {
 	Description string  `json:"description"`
 }
 type PayloadAICashflow struct {
-	TypeBot   enum.BotType `json:"type_bot"`
-	Message   string       `json:"message"`
-	Type      string       `json:"type"`
-	MessageId string       `json:"message_id"`
-	From      string       `json:"from"`
-	To        string       `json:"to"`
+	TypeBot   enum.BotType  `json:"type_bot"`
+	Message   string        `json:"message"`
+	Type      string        `json:"type"`
+	MessageId string        `json:"message_id"`
+	From      string        `json:"from"`
+	To        string        `json:"to"`
+	Media     *MediaPayload `json:"media,omitempty"`
+}
+
+type MediaPayload struct {
+	URL      string `json:"url"`
+	Filename string `json:"filename,omitempty"`
+	MimeType string `json:"mimetype,omitempty"`
 }

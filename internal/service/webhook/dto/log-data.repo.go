@@ -34,7 +34,7 @@ type Payload struct {
 	Body        string        `json:"body"`
 	From        string        `json:"from"`
 	Data        Data          `json:"_data"`
-	Media       interface{}   `json:"media"`
+	Media       *PayloadMedia `json:"media"`
 	FromMe      bool          `json:"fromMe"`
 	Source      string        `json:"source"`
 	VCards      []interface{} `json:"vCards"`
@@ -44,6 +44,12 @@ type Payload struct {
 	Location    interface{}   `json:"location"`
 	Timestamp   int64         `json:"timestamp"`
 	Participant string        `json:"participant"`
+}
+
+type PayloadMedia struct {
+	URL      string `json:"url"`
+	Filename string `json:"filename"`
+	MimeType string `json:"mimetype"`
 }
 
 type Data struct {

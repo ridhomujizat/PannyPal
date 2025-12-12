@@ -1,6 +1,10 @@
 package aicashflow
 
 import (
+	"encoding/base64"
+	"fmt"
+	"io"
+	"net/http"
 	"pannypal/internal/common/models"
 	"pannypal/internal/service/ai-cashflow/dto"
 	"strconv"
@@ -191,4 +195,43 @@ func (s *Service) formatCurrency(amount int) string {
 	}
 
 	return result
+}
+
+// downloadImageAndEncodeBase64 downloads image from media URL with authentication
+func (s *Service) downloadImageAndEncodeBase64(mediaURL string, accountBot *models.AccountBot) (string, error) {
+	// Replace localhost with base URL if needed
+	if strings.Contains(mediaURL, "localhost") {
+		mediaURL = strings.ReplaceAll(mediaURL, "http://localhost:3000", accountBot.BaseURL)
+	}
+
+	// Create HTTP request with authentication
+	req, err := http.NewRequest("GET", mediaURL, nil)
+	if err != nil {
+		return "", fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("X-Api-Key", accountBot.Key)
+	req.Header.Set("Content-Type", "application/octet-stream")
+
+	// Execute request
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("failed to download image: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to download image: status code %d", resp.StatusCode)
+	}
+
+	// Read image data
+	imageData, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read image: %w", err)
+	}
+
+	// Encode to base64
+	base64Image := base64.StdEncoding.EncodeToString(imageData)
+	return base64Image, nil
 }

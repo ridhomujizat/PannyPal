@@ -2,6 +2,7 @@ package ai
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"log"
 
@@ -58,6 +59,45 @@ func (a *AiClient) GeminiPrompt(prompt string) (*string, error) {
 	} else {
 		return nil, fmt.Errorf("unexpected response part type")
 	}
+	return &rawGeminiText, nil
+}
+
+// GeminiPromptWithImage sends a prompt with a base64 encoded image to Gemini API
+func (a *AiClient) GeminiPromptWithImage(prompt string, base64Image string) (*string, error) {
+	if a.geminiClient == nil {
+		return nil, fmt.Errorf("Gemini client is not initialized")
+	}
+
+	// Decode base64 image
+	imageData, err := base64.StdEncoding.DecodeString(base64Image)
+	if err != nil {
+		return nil, fmt.Errorf("failed to decode base64 image: %w", err)
+	}
+
+	model := a.geminiClient.GenerativeModel(a.geminiModel)
+
+	// Create content with both text and image
+	resp, err := model.GenerateContent(a.ctx,
+		genai.Text(prompt),
+		genai.ImageData("jpeg", imageData),
+	)
+
+	if err != nil {
+		return nil, fmt.Errorf("failed to call Gemini API with image: %w", err)
+	}
+
+	if len(resp.Candidates) == 0 || len(resp.Candidates[0].Content.Parts) == 0 {
+		return nil, fmt.Errorf("received empty or invalid response structure from Gemini")
+	}
+
+	part := resp.Candidates[0].Content.Parts[0]
+	rawGeminiText := ""
+	if textPart, ok := part.(genai.Text); ok {
+		rawGeminiText = string(textPart)
+	} else {
+		return nil, fmt.Errorf("unexpected response part type")
+	}
+
 	return &rawGeminiText, nil
 }
 

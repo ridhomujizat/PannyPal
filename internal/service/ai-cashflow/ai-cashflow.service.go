@@ -128,6 +128,18 @@ func (s *Service) InputTransaction(payload dto.InputTransaction) *types.Response
 }
 
 func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
+	// Implementation of PannyPalBotCashflow
+	switch payload.Type {
+	case "chat":
+		s.PannyPalBotCashflowText(payload)
+	case "image":
+		s.PannyPalBotCashflowImage(payload)
+	default:
+		fmt.Println("Unsupported payload type:", payload.Type)
+	}
+}
+
+func (s *Service) PannyPalBotCashflowText(payload dto.PayloadAICashflow) {
 	OutgiingMessage := dtoOutgoingMessage.PayloadOutgoing{
 		ReplyToMessage: &payload.MessageId,
 		Type:           "TEXT",
@@ -208,6 +220,118 @@ func (s *Service) PannyPalBotCashflow(payload dto.PayloadAICashflow) {
 	}
 	fmt.Println("MessageToReply saved:", saveTODraft)
 
+}
+
+func (s *Service) PannyPalBotCashflowImage(payload dto.PayloadAICashflow) {
+	fmt.Println("Processing image payload for message ID:", payload.MessageId)
+	OutgiingMessage := dtoOutgoingMessage.PayloadOutgoing{
+		ReplyToMessage: &payload.MessageId,
+		Type:           "TEXT",
+		AccountId:      payload.From,
+		To:             payload.To,
+	}
+
+	// Validate media payload
+	if payload.Media == nil || payload.Media.URL == "" {
+		OutgiingMessage.Message = "Maaf, tidak ada data gambar yang terdeteksi."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error: Media payload is missing")
+		return
+	}
+
+	// Get account bot for authentication
+	accountBot, err := s.rp.Bot.GetBotByAccountID(payload.From)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error getting account bot:", err)
+		return
+	}
+
+	if accountBot == nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error: Account bot not found")
+		return
+	}
+
+	// Download image and encode to base64
+	base64Image, err := s.downloadImageAndEncodeBase64(payload.Media.URL, accountBot)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat mengunduh gambar."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error downloading image:", err)
+		return
+	}
+
+	// Perform OCR on image
+	ocrResponse, err := s.performOCROnImage(base64Image)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses gambar."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error performing OCR:", err)
+		return
+	}
+
+	// Parse OCR response
+	var result dto.TransactionResponseAi
+	cleanResponse := s.cleanAIResponse(ocrResponse)
+	err = json.Unmarshal([]byte(cleanResponse), &result)
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses data transaksi dari gambar."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error unmarshaling OCR response:", err)
+		return
+	}
+
+	// Check if any transactions were found
+	if len(result.ReqPayload) == 0 {
+		OutgiingMessage.Message = "Maaf, saya tidak menemukan data transaksi dari gambar yang Anda kirim."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+
+	// Generate message from ReqPayload
+	messageResult := s.generateTransactionSummary(result.ReqPayload)
+	messageResult += "\n\nBalas dengan _'save'_, _'edit'_, atau _'cancel'_."
+	OutgiingMessage.Message = messageResult
+	OutgiingMessage.ReplyToMessage = &payload.MessageId
+
+	outResponse, err := s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+	if err != nil {
+		fmt.Println("Error sending message:", err)
+		return
+	}
+	if outResponse == nil {
+		fmt.Println("No response from outgoing service")
+		return
+	}
+
+	// Save draft message
+	reqBytes, err := json.Marshal(result.ReqPayload)
+	if err != nil {
+		fmt.Println("Error marshaling request:", err)
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses data transaksi."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+	rawMessage := json.RawMessage(reqBytes)
+
+	modelMessageToReply := models.MessageToReply{
+		MessageID:   outResponse.Id,
+		FeatureType: enum.FeatureTypeAIcashflow,
+		Messsage:    messageResult,
+		Additional:  &rawMessage,
+	}
+
+	saveTODraft, err := s.rp.Bot.CreateMessageToReply(modelMessageToReply)
+	if err != nil {
+		fmt.Println("Error saving MessageToReply:", err)
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat menyimpan draft pesan."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		return
+	}
+	fmt.Println("MessageToReply saved:", saveTODraft)
 }
 
 func (s *Service) PannyPalBotCashflowReplayAction(payload dto.PayloadAICashflow, messageToReply models.MessageToReply) {
