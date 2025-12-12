@@ -33,10 +33,10 @@ CATEGORIES: %s
 OUTPUT FORMAT:
 {
   "req_payload": [{
-    "type": "",
-    "amount": 0,
-    "category_id": 0,
-    "description": ""
+	"type": "",
+	"amount": 0,
+	"category_id": 0,
+	"description": ""
   }]
 }
 
@@ -46,6 +46,7 @@ RULES:
 - category_id: match from categories list
 - description: original item name
 - Multiple transactions: array of objects in req_payload
+- If no transaction found, return empty array: {"req_payload": []}
 - Return ONLY the JSON object, nothing else`, input, string(categoriesJSON)), nil
 }
 
