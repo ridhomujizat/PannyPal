@@ -21,6 +21,7 @@ type IService interface {
 	GetMonthlyAnalyticsRequest(payload dto.MonthlyAnalyticsRequest) *types.Response
 	GetYearlyAnalyticsRequest(payload dto.YearlyAnalyticsRequest) *types.Response
 	GetCategoryAnalyticsRequest(payload dto.CategoryAnalyticsRequest) *types.Response
+	GetDashboardAnalyticsRequest(payload dto.DashboardAnalyticsRequest) *types.Response
 }
 
 func NewService(ctx context.Context, redis redis.IRedis, repository repository.IRepository, db *database.Database) IService {

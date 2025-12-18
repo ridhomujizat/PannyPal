@@ -263,3 +263,80 @@ func (s *Service) GetCategoryAnalyticsRequest(payload dto.CategoryAnalyticsReque
 		Data:    response,
 	})
 }
+
+func (s *Service) GetDashboardAnalyticsRequest(payload dto.DashboardAnalyticsRequest) *types.Response {
+	var userID *uint
+
+	if payload.PhoneNumber != nil && *payload.PhoneNumber != "" {
+		user, err := s.rp.User.GetUserByPhone(*payload.PhoneNumber)
+		if err != nil {
+			return helper.ParseResponse(&types.Response{
+				Code:    http.StatusNotFound,
+				Message: "User not found",
+				Data:    nil,
+				Error:   err,
+			})
+		}
+		userID = &user.ID
+	}
+
+	// Default to current month if not provided
+	now := time.Now()
+	startDate := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location())
+	endDate := startDate.AddDate(0, 1, 0).Add(-time.Second)
+
+	if payload.StartDate != nil && payload.EndDate != nil {
+		startDate = *payload.StartDate
+		endDate = *payload.EndDate
+	}
+
+	data, err := s.analyticsRepo.GetDashboardAnalytics(userID, startDate, endDate)
+	if err != nil {
+		return helper.ParseResponse(&types.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to get dashboard analytics",
+			Data:    nil,
+			Error:   err,
+		})
+	}
+
+	// Calculate percentage changes
+	incomeChange := float64(0)
+	if data.PreviousIncome > 0 {
+		incomeChange = ((data.CurrentIncome - data.PreviousIncome) / data.PreviousIncome) * 100
+	} else if data.CurrentIncome > 0 {
+		incomeChange = 100
+	}
+
+	expenseChange := float64(0)
+	if data.PreviousExpense > 0 {
+		expenseChange = ((data.CurrentExpense - data.PreviousExpense) / data.PreviousExpense) * 100
+	} else if data.CurrentExpense > 0 {
+		expenseChange = 100
+	}
+
+	// Calculate previous period dates
+	duration := endDate.Sub(startDate)
+	previousEndDate := startDate.Add(-time.Second)
+	previousStartDate := previousEndDate.Add(-duration)
+
+	totalBalance := data.TotalIncomeAllTime - data.TotalExpenseAllTime
+
+	response := dto.DashboardAnalyticsResponse{
+		TotalBalance:      totalBalance,
+		Income:            data.CurrentIncome,
+		Expense:           data.CurrentExpense,
+		IncomeChange:      incomeChange,
+		ExpenseChange:     expenseChange,
+		StartDate:         &startDate,
+		EndDate:           &endDate,
+		PreviousStartDate: &previousStartDate,
+		PreviousEndDate:   &previousEndDate,
+	}
+
+	return helper.ParseResponse(&types.Response{
+		Code:    http.StatusOK,
+		Message: "Dashboard analytics retrieved successfully",
+		Data:    response,
+	})
+}

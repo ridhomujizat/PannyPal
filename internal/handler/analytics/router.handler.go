@@ -7,4 +7,5 @@ func (h *Handler) NewRoutes(e *gin.RouterGroup) {
 	group.GET("/monthly", h.GetMonthlyAnalytics)
 	group.GET("/yearly", h.GetYearlyAnalytics)
 	group.GET("/categories", h.GetCategoryAnalytics)
+	group.GET("/dashboard", h.GetDashboardAnalytics)
 }

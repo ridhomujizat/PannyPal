@@ -25,6 +25,7 @@ type IHandler interface {
 	GetMonthlyAnalytics(c *gin.Context)
 	GetYearlyAnalytics(c *gin.Context)
 	GetCategoryAnalytics(c *gin.Context)
+	GetDashboardAnalytics(c *gin.Context)
 }
 
 func NewHandler(ctx context.Context, rabbitmq *rabbitmq.ConnectionManager, analyticsService analyticsService.IService) IHandler {
@@ -119,8 +120,8 @@ func (h *Handler) GetYearlyAnalytics(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param phone_number query string false "User's phone number"
-// @Param start_date query string false "Analysis from this date"
-// @Param end_date query string false "Analysis until this date"
+// @Param start_date query string false "Analysis from this date (format: 2006-01-02)"
+// @Param end_date query string false "Analysis until this date (format: 2006-01-02)"
 // @Param type query string false "INCOME or EXPENSE"
 // @Success 200 {object} dto.CategoryAnalyticsResponse "Category analytics retrieved successfully"
 // @Failure 400 {object} types.Response "Bad Request"
@@ -150,4 +151,43 @@ func (h *Handler) GetCategoryAnalytics(c *gin.Context) {
 	}
 
 	send(h.analyticsService.GetCategoryAnalyticsRequest(payload))
+}
+
+// GetDashboardAnalytics godoc
+// @Summary Get dashboard analytics
+// @Description Get total balance, income/expense and their changes from previous period
+// @Tags Analytics APIs
+// @Accept json
+// @Produce json
+// @Param phone_number query string false "User's phone number"
+// @Param start_date query string false "Start date (format: 2006-01-02)"
+// @Param end_date query string false "End date (format: 2006-01-02)"
+// @Success 200 {object} dto.DashboardAnalyticsResponse "Dashboard analytics retrieved successfully"
+// @Failure 400 {object} types.Response "Bad Request"
+// @Router /analytics/dashboard [get]
+func (h *Handler) GetDashboardAnalytics(c *gin.Context) {
+	send := c.MustGet("send").(func(r *types.Response))
+	var payload dto.DashboardAnalyticsRequest
+
+	if err := c.ShouldBindQuery(&payload); err != nil {
+		send(&types.Response{
+			Code:    http.StatusBadRequest,
+			Message: "Invalid query parameters",
+			Data:    nil,
+			Error:   err,
+		})
+		return
+	}
+
+	if err := validation.Validate(payload); err != nil {
+		send(helper.ParseResponse(&types.Response{
+			Code:    http.StatusBadRequest,
+			Message: "Validation error",
+			Data:    err.Error(),
+			Error:   err,
+		}))
+		return
+	}
+
+	send(h.analyticsService.GetDashboardAnalyticsRequest(payload))
 }

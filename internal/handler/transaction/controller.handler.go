@@ -83,8 +83,8 @@ func (h *Handler) CreateTransaction(c *gin.Context) {
 // @Param phone_number query string false "User's phone number"
 // @Param type query string false "Filter by type (INCOME/EXPENSE)"
 // @Param category_id query int false "Filter by category ID"
-// @Param start_date query string false "Filter transactions from this date (ISO format)"
-// @Param end_date query string false "Filter transactions until this date (ISO format)"
+// @Param start_date query string false "Filter transactions from this date (format: 2006-01-02)"
+// @Param end_date query string false "Filter transactions until this date (format: 2006-01-02)"
 // @Param page query int false "Page number (default: 1)"
 // @Param limit query int false "Items per page (default: 10, max: 100)"
 // @Success 200 {object} types.Response "Transactions retrieved successfully"
@@ -266,8 +266,8 @@ func (h *Handler) DeleteTransaction(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param phone_number query string false "User's phone number"
-// @Param start_date query string false "Summary from this date"
-// @Param end_date query string false "Summary until this date"
+// @Param start_date query string false "Summary from this date (format: 2006-01-02)"
+// @Param end_date query string false "Summary until this date (format: 2006-01-02)"
 // @Param month query int false "Filter by specific month (1-12)"
 // @Param year query int false "Filter by specific year"
 // @Success 200 {object} dto.TransactionSummaryResponse "Transaction summary retrieved successfully"

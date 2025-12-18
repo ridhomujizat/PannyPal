@@ -24,16 +24,16 @@ type GetTransactionsRequest struct {
 	PhoneNumber *string    `form:"phone_number,omitempty" validate:"omitempty"`
 	Type        *string    `form:"type" validate:"omitempty,oneof=INCOME EXPENSE"`
 	CategoryID  *int       `form:"category_id" validate:"omitempty"`
-	StartDate   *time.Time `form:"start_date" validate:"omitempty"`
-	EndDate     *time.Time `form:"end_date" validate:"omitempty"`
+	StartDate   *time.Time `form:"start_date" validate:"omitempty" time_format:"2006-01-02"`
+	EndDate     *time.Time `form:"end_date" validate:"omitempty" time_format:"2006-01-02"`
 	Page        int        `form:"page" validate:"omitempty,min=1" default:"1"`
 	Limit       int        `form:"limit" validate:"omitempty,min=1,max=100" default:"10"`
 }
 
 type TransactionSummaryRequest struct {
 	PhoneNumber *string    `form:"phone_number,omitempty" validate:"omitempty"`
-	StartDate   *time.Time `form:"start_date" validate:"omitempty"`
-	EndDate     *time.Time `form:"end_date" validate:"omitempty"`
+	StartDate   *time.Time `form:"start_date" validate:"omitempty" time_format:"2006-01-02"`
+	EndDate     *time.Time `form:"end_date" validate:"omitempty" time_format:"2006-01-02"`
 	Month       *int       `form:"month" validate:"omitempty,min=1,max=12"`
 	Year        *int       `form:"year" validate:"omitempty,min=2020"`
 }

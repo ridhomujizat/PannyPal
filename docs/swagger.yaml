@@ -154,6 +154,32 @@ definitions:
     - amount
     - type
     type: object
+  dto.DashboardAnalyticsResponse:
+    properties:
+      end_date:
+        type: string
+      expense:
+        description: Expense in date range
+        type: number
+      expense_change:
+        description: Percentage change from previous period
+        type: number
+      income:
+        description: Income in date range
+        type: number
+      income_change:
+        description: Percentage change from previous period
+        type: number
+      previous_end_date:
+        type: string
+      previous_start_date:
+        type: string
+      start_date:
+        type: string
+      total_balance:
+        description: Total income - expense all time
+        type: number
+    type: object
   dto.InputTransaction:
     properties:
       message:
@@ -165,6 +191,15 @@ definitions:
     required:
     - message
     - phone_number
+    type: object
+  dto.MediaPayload:
+    properties:
+      filename:
+        type: string
+      mimetype:
+        type: string
+      url:
+        type: string
     type: object
   dto.MonthlyAnalyticsResponse:
     properties:
@@ -206,6 +241,8 @@ definitions:
     properties:
       from:
         type: string
+      media:
+        $ref: '#/definitions/dto.MediaPayload'
       message:
         type: string
       message_id:
@@ -240,8 +277,6 @@ definitions:
     type: object
   dto.TransactionResponseAi:
     properties:
-      message:
-        type: string
       req_payload:
         items:
           $ref: '#/definitions/dto.TransactionPayload'
@@ -504,6 +539,39 @@ paths:
           schema:
             $ref: '#/definitions/types.Response'
       summary: Get category analytics
+      tags:
+      - Analytics APIs
+  /analytics/dashboard:
+    get:
+      consumes:
+      - application/json
+      description: Get total balance, income/expense and their changes from previous
+        period
+      parameters:
+      - description: User's phone number
+        in: query
+        name: phone_number
+        type: string
+      - description: 'Start date (format: 2006-01-02)'
+        in: query
+        name: start_date
+        type: string
+      - description: 'End date (format: 2006-01-02)'
+        in: query
+        name: end_date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Dashboard analytics retrieved successfully
+          schema:
+            $ref: '#/definitions/dto.DashboardAnalyticsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get dashboard analytics
       tags:
       - Analytics APIs
   /analytics/monthly:

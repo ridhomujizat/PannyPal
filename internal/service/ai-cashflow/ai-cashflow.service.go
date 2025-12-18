@@ -10,6 +10,7 @@ import (
 	"pannypal/internal/pkg/helper"
 	"pannypal/internal/service/ai-cashflow/dto"
 	dtoOutgoingMessage "pannypal/internal/service/outgoing/dto"
+	"time"
 )
 
 func (s *Service) InputTransaction(payload dto.InputTransaction) *types.Response {
@@ -413,11 +414,12 @@ func (s *Service) SaveTransaction(payload dto.PayloadAICashflow, messageToReply 
 		}
 
 		model := models.Transaction{
-			UserID:      user.ID,
-			Type:        models.TransactionType(tx.Type),
-			Amount:      tx.Amount,
-			CategoryID:  validCategoryID,
-			Description: tx.Description,
+			UserID:          user.ID,
+			Type:            models.TransactionType(tx.Type),
+			Amount:          tx.Amount,
+			CategoryID:      validCategoryID,
+			Description:     tx.Description,
+			TransactionDate: time.Now(),
 		}
 		_, err = s.rp.Transaction.CreateTransaction(model)
 		if err != nil {

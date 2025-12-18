@@ -199,6 +199,55 @@ const docTemplate = `{
                 }
             }
         },
+        "/analytics/dashboard": {
+            "get": {
+                "description": "Get total balance, income/expense and their changes from previous period",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Analytics APIs"
+                ],
+                "summary": "Get dashboard analytics",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User's phone number",
+                        "name": "phone_number",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Start date (format: 2006-01-02)",
+                        "name": "start_date",
+                        "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "End date (format: 2006-01-02)",
+                        "name": "end_date",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Dashboard analytics retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/dto.DashboardAnalyticsResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/analytics/monthly": {
             "get": {
                 "description": "Get monthly breakdown for a year",
@@ -1385,6 +1434,43 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.DashboardAnalyticsResponse": {
+            "type": "object",
+            "properties": {
+                "end_date": {
+                    "type": "string"
+                },
+                "expense": {
+                    "description": "Expense in date range",
+                    "type": "number"
+                },
+                "expense_change": {
+                    "description": "Percentage change from previous period",
+                    "type": "number"
+                },
+                "income": {
+                    "description": "Income in date range",
+                    "type": "number"
+                },
+                "income_change": {
+                    "description": "Percentage change from previous period",
+                    "type": "number"
+                },
+                "previous_end_date": {
+                    "type": "string"
+                },
+                "previous_start_date": {
+                    "type": "string"
+                },
+                "start_date": {
+                    "type": "string"
+                },
+                "total_balance": {
+                    "description": "Total income - expense all time",
+                    "type": "number"
+                }
+            }
+        },
         "dto.InputTransaction": {
             "type": "object",
             "required": [
@@ -1400,6 +1486,20 @@ const docTemplate = `{
                 },
                 "save_as_draft": {
                     "type": "boolean"
+                }
+            }
+        },
+        "dto.MediaPayload": {
+            "type": "object",
+            "properties": {
+                "filename": {
+                    "type": "string"
+                },
+                "mimetype": {
+                    "type": "string"
+                },
+                "url": {
+                    "type": "string"
                 }
             }
         },
@@ -1464,6 +1564,9 @@ const docTemplate = `{
                 "from": {
                     "type": "string"
                 },
+                "media": {
+                    "$ref": "#/definitions/dto.MediaPayload"
+                },
                 "message": {
                     "type": "string"
                 },
@@ -1516,9 +1619,6 @@ const docTemplate = `{
         "dto.TransactionResponseAi": {
             "type": "object",
             "properties": {
-                "message": {
-                    "type": "string"
-                },
                 "req_payload": {
                     "type": "array",
                     "items": {
