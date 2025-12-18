@@ -72,11 +72,13 @@ func (r *Repository) GetMonthlyAnalytics(userID *uint, year int) ([]MonthlyAnaly
 
 	args := []interface{}{}
 	if userID != nil {
-		query += ` WHERE user_id = ?`
+		query += ` WHERE user_id = ? AND`
 		args = append(args, *userID)
+	} else {
+		query += ` WHERE`
 	}
 
-	query += ` AND EXTRACT(YEAR FROM transaction_date) = ?
+	query += ` EXTRACT(YEAR FROM transaction_date) = ?
 		GROUP BY EXTRACT(MONTH FROM transaction_date), EXTRACT(YEAR FROM transaction_date)
 		ORDER BY month`
 

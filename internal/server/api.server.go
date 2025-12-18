@@ -97,7 +97,7 @@ func BasePath() string {
 }
 
 func InitMiddleware(e *gin.Engine, publisher *rabbitmq.Publisher) {
-	// e.Use(middleware.CorsMiddleware())
+	e.Use(middleware.CorsMiddleware())
 	e.Use(middleware.RequestInit())
 	e.Use(middleware.ResponseInit())
 }
