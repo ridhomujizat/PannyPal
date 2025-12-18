@@ -49,7 +49,16 @@ func (s *Service) InputTransaction(payload dto.InputTransaction) *types.Response
 		})
 	}
 
-	aiResponse, err := s.ai.GeminiPrompt(prompt)
+	schema, err := s.getTransactionSchema()
+	if err != nil {
+		return helper.ParseResponse(&types.Response{
+			Code:    http.StatusInternalServerError,
+			Message: "Failed to get transaction schema",
+			Error:   err,
+			Data:    nil,
+		})
+	}
+	aiResponse, err := s.ai.GeminiPromptWithSchema(prompt, schema)
 	if err != nil {
 		return helper.ParseResponse(&types.Response{
 			Code:    http.StatusInternalServerError,
@@ -66,10 +75,13 @@ func (s *Service) InputTransaction(payload dto.InputTransaction) *types.Response
 		})
 	}
 
-	fmt.Println("AI Response:", *aiResponse)
+	// Log the prompt activity
+	s.logPromptActivity(prompt, aiResponse.Response, aiResponse.TokenUsed, aiResponse.ResponseTime)
+
+	fmt.Println("AI Response:", aiResponse.Response)
 
 	// Clean up AI response - remove backticks and markdown formatting
-	cleanResponse := s.cleanAIResponse(*aiResponse)
+	cleanResponse := s.cleanAIResponse(aiResponse.Response)
 	fmt.Println("Cleaned Response:", cleanResponse)
 
 	var result dto.TransactionResponseAi
@@ -155,7 +167,14 @@ func (s *Service) PannyPalBotCashflowText(payload dto.PayloadAICashflow) {
 		return
 	}
 
-	aiResponse, err := s.ai.GeminiPrompt(prompt)
+	schema, err := s.getTransactionSchema()
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error getting transaction schema:", err)
+		return
+	}
+	aiResponse, err := s.ai.GeminiPromptWithSchema(prompt, schema)
 	if err != nil {
 		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
 		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
@@ -169,8 +188,11 @@ func (s *Service) PannyPalBotCashflowText(payload dto.PayloadAICashflow) {
 		return
 	}
 
+	// Log the prompt activity
+	s.logPromptActivity(prompt, aiResponse.Response, aiResponse.TokenUsed, aiResponse.ResponseTime)
+
 	var result dto.TransactionResponseAi
-	cleanResponse := s.cleanAIResponse(*aiResponse)
+	cleanResponse := s.cleanAIResponse(aiResponse.Response)
 	err = json.Unmarshal([]byte(cleanResponse), &result)
 	if err != nil {
 		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses data transaksi."
@@ -443,7 +465,14 @@ func (s *Service) EditTransaction(payload dto.PayloadAICashflow, messageToReply 
 		return
 	}
 
-	aiResponse, err := s.ai.GeminiPrompt(prompt)
+	schema, err := s.getTransactionSchema()
+	if err != nil {
+		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
+		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
+		fmt.Println("Error getting transaction schema:", err)
+		return
+	}
+	aiResponse, err := s.ai.GeminiPromptWithSchema(prompt, schema)
 	if err != nil {
 		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses permintaan Anda."
 		s.outgoingService.HandleWebhookEventWaha(OutgiingMessage)
@@ -455,8 +484,11 @@ func (s *Service) EditTransaction(payload dto.PayloadAICashflow, messageToReply 
 		return
 	}
 
+	// Log the prompt activity
+	s.logPromptActivity(prompt, aiResponse.Response, aiResponse.TokenUsed, aiResponse.ResponseTime)
+
 	var result dto.TransactionResponseAi
-	cleanResponse := s.cleanAIResponse(*aiResponse)
+	cleanResponse := s.cleanAIResponse(aiResponse.Response)
 	err = json.Unmarshal([]byte(cleanResponse), &result)
 	if err != nil {
 		OutgiingMessage.Message = "Maaf, terjadi kesalahan saat memproses data transaksi."

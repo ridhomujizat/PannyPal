@@ -3,155 +3,111 @@ package aicashflow
 import (
 	"encoding/json"
 	"fmt"
+	"pannypal/internal/common/models"
+	"strings"
+
+	"github.com/google/generative-ai-go/genai"
 )
 
-func (s *Service) promptUserTransactionInput(input string) (string, error) {
+// getTransactionSchema builds JSON Schema for structured output with dynamic categories from database
+func (s *Service) getTransactionSchema() (*genai.Schema, error) {
+	// Get categories from database
 	categoryList, err := s.rp.Category.GetAllCategories()
 	if err != nil {
-		return "", err
+		return nil, fmt.Errorf("failed to get categories: %w", err)
 	}
 
-	// Buat mapping sederhana hanya ID dan Name untuk hemat token
-	simplifiedCategories := make([]map[string]interface{}, len(categoryList))
-	for i, cat := range categoryList {
-		simplifiedCategories[i] = map[string]interface{}{
-			"id":   cat.ID,
-			"name": cat.Name,
-		}
+	// Build category description from database
+	var categoryDescParts []string
+	for _, cat := range categoryList {
+		categoryDescParts = append(categoryDescParts, fmt.Sprintf("%d=%s", cat.ID, cat.Name))
 	}
+	categoryDescription := "Category ID: " + strings.Join(categoryDescParts, ", ")
 
-	categoriesJSON, err := json.Marshal(simplifiedCategories)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf(`You are a JSON-only transaction parser. Return ONLY valid JSON, no explanations.
+	return &genai.Schema{
+		Type: genai.TypeObject,
+		Properties: map[string]*genai.Schema{
+			"req_payload": {
+				Type:        genai.TypeArray,
+				Description: "Array of transactions extracted from input",
+				Items: &genai.Schema{
+					Type: genai.TypeObject,
+					Properties: map[string]*genai.Schema{
+						"type": {
+							Type:        genai.TypeString,
+							Description: "Transaction type",
+							Enum:        []string{"EXPENSE", "INCOME"},
+						},
+						"amount": {
+							Type:        genai.TypeInteger,
+							Description: "Transaction amount in integer",
+						},
+						"category_id": {
+							Type:        genai.TypeInteger,
+							Description: categoryDescription,
+						},
+						"description": {
+							Type:        genai.TypeString,
+							Description: "Item or transaction description",
+						},
+					},
+					Required: []string{"type", "amount", "category_id", "description"},
+				},
+			},
+		},
+		Required: []string{"req_payload"},
+	}, nil
+}
+
+// promptUserTransactionInput generates prompt for text-based transaction input
+func (s *Service) promptUserTransactionInput(input string) (string, error) {
+	prompt := fmt.Sprintf(`Extract financial transactions from this input text.
 
 INPUT: "%s"
 
-CATEGORIES: %s
+Extract with JSON schema.`, input)
 
-OUTPUT FORMAT:
-{
-  "req_payload": [{
-	"type": "",
-	"amount": 0,
-	"category_id": 0,
-	"description": ""
-  }]
+	return prompt, nil
 }
 
-RULES:
-- type: "EXPENSE" or "INCOME"
-- amount: integer only
-- category_id: match from categories list
-- description: original item name
-- Multiple transactions: array of objects in req_payload
-- If no transaction found, return empty array: {"req_payload": []}
-- Return ONLY the JSON object, nothing else`, input, string(categoriesJSON)), nil
-}
-
+// promptUserTransactionInputEdit generates prompt for editing existing transactions
 func (s *Service) promptUserTransactionInputEdit(input string, existJson interface{}) (string, error) {
-	categoryList, err := s.rp.Category.GetAllCategories()
+	existingData, err := json.Marshal(existJson)
 	if err != nil {
 		return "", err
 	}
 
-	// Buat mapping sederhana hanya ID dan Name untuk hemat token
-	simplifiedCategories := make([]map[string]interface{}, len(categoryList))
-	for i, cat := range categoryList {
-		simplifiedCategories[i] = map[string]interface{}{
-			"id":   cat.ID,
-			"name": cat.Name,
-		}
-	}
-
-	categoriesJSON, err := json.Marshal(simplifiedCategories)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf(`You are a JSON-only transaction parser. Return ONLY valid JSON, no explanations.
+	prompt := fmt.Sprintf(`Merge and update transactions based on user input.
 
 EXISTING DATA: %s
 
-INPUT: "%s"
-
-CATEGORIES: %s
-
-OUTPUT FORMAT:
-{
-  "req_payload": [{
-	"type": "",
-	"amount": 0,
-	"category_id": 0,
-	"description": ""
-  }]
-}
+NEW INPUT: "%s"
 
 RULES:
-- MERGE strategy: Keep ALL existing transactions, only UPDATE matching ones
-- Match transaction by description (case-insensitive partial match)
-- If INPUT matches existing description: UPDATE that transaction
-- If INPUT is new: ADD to array
-- If INPUT doesn't mention existing transaction: KEEP it unchanged
-- type: "EXPENSE" or "INCOME"
-- amount: integer only
-- category_id: match from categories list
-- description: item name
-- Return complete req_payload array with ALL transactions (existing + updated + new)
-- Return ONLY the JSON object, nothing else`, existJson, input, string(categoriesJSON)), nil
+- Keep ALL existing transactions
+- UPDATE matching transactions (match by description)
+- ADD new transactions from input
+- If input doesn't mention existing transaction, KEEP it unchanged
+
+Extract with JSON schema.`, string(existingData), input)
+
+	return prompt, nil
 }
 
-// performOCROnImage performs OCR on image using Gemini vision
+// performOCROnImage performs OCR on image using Gemini vision with structured output
 func (s *Service) performOCROnImage(base64Image string) (string, error) {
-	categoryList, err := s.rp.Category.GetAllCategories()
+	prompt := `Extract financial transactions from this image (receipt, invoice, bank statement, shopping list, etc).
+
+Extract with JSON schema.`
+
+	// Get transaction schema for structured output (with dynamic categories)
+	schema, err := s.getTransactionSchema()
 	if err != nil {
-		return "", fmt.Errorf("failed to get categories: %w", err)
+		return "", fmt.Errorf("failed to get transaction schema: %w", err)
 	}
 
-	// Buat mapping sederhana hanya ID dan Name untuk hemat token
-	simplifiedCategories := make([]map[string]interface{}, len(categoryList))
-	for i, cat := range categoryList {
-		simplifiedCategories[i] = map[string]interface{}{
-			"id":   cat.ID,
-			"name": cat.Name,
-		}
-	}
-
-	categoriesJSON, err := json.Marshal(simplifiedCategories)
-	if err != nil {
-		return "", err
-	}
-
-	// Create OCR prompt
-	prompt := fmt.Sprintf(`You are an OCR and JSON transaction parser. Extract financial transactions from the image.
-
-IMPORTANT: You MUST include the base64 image data in your analysis.
-
-Categories: %s
-
-OUTPUT FORMAT:
-{
-  "req_payload": [{
-    "type": "",
-    "amount": 0,
-    "category_id": 0,
-    "description": ""
-  }]
-}
-
-RULES:
-- Scan the image carefully for transaction data (receipts, invoices, bank statements, shopping lists, etc.)
-- Extract each transaction found
-- type: "EXPENSE" or "INCOME"
-- amount: integer only
-- category_id: match from categories list (best guess if not exact match)
-- description: item name from the image
-- Multiple transactions: array of objects in req_payload
-- If no transaction found, return empty array: {"req_payload": []}
-- Return ONLY the JSON object, nothing else`, categoriesJSON)
-
-	// Call Gemini with vision capability
-	aiResponse, err := s.ai.GeminiPromptWithImage(prompt, base64Image)
+	// Call Gemini with vision capability and schema
+	aiResponse, err := s.ai.GeminiPromptWithImageAndSchema(prompt, base64Image, schema)
 	if err != nil {
 		return "", fmt.Errorf("failed to perform OCR: %w", err)
 	}
@@ -160,5 +116,25 @@ RULES:
 		return "", fmt.Errorf("OCR response is empty")
 	}
 
-	return *aiResponse, nil
+	// Log the prompt activity
+	s.logPromptActivity(prompt, aiResponse.Response, aiResponse.TokenUsed, aiResponse.ResponseTime)
+
+	return aiResponse.Response, nil
+}
+
+// logPromptActivity saves the prompt activity to database
+func (s *Service) logPromptActivity(prompt, response string, tokenUsed, responseTime int) {
+	modelName := "gemini"
+	logEntry := models.LogPrompt{
+		ModelLLM:     &modelName,
+		Prompt:       prompt,
+		Response:     response,
+		TokenUsed:    tokenUsed,
+		ResponseTime: responseTime,
+	}
+
+	_, err := s.rp.LogData.CreateLogPrompt(logEntry)
+	if err != nil {
+		fmt.Println("Error logging prompt activity:", err)
+	}
 }

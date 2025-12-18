@@ -14,9 +14,11 @@ type LogWaha struct {
 
 type LogPrompt struct {
 	gorm.Model
-	ModelLLM *string `gorm:"type:varchar(100)" json:"model"`
-	Prompt   string  `gorm:"type:text" json:"prompt"`
-	Response string  `gorm:"type:text" json:"response"`
+	ModelLLM     *string `gorm:"type:varchar(100)" json:"model"`
+	Prompt       string  `gorm:"type:text" json:"prompt"`
+	Response     string  `gorm:"type:text" json:"response"`
+	TokenUsed    int     `gorm:"type:int" json:"token_used"`
+	ResponseTime int     `gorm:"type:int" json:"response_time"`
 }
 
 type LogWahaResponse struct {
