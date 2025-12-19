@@ -8,7 +8,13 @@ services:
     container_name: pannypal-api-prod
     ports:
       - "9001:9001"
+      # 1. Tambahkan Volume Mapping untuk sinkronisasi waktu host ke container
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
     environment:
+      # 2. Tambahkan variabel Timezone
+      - TZ=Asia/Jakarta
       # Application Configuration
       - APP_ENV=${APP_ENV:-production}
       - APP_PORT=${APP_PORT:-9001}
