@@ -158,16 +158,16 @@ definitions:
     properties:
       end_date:
         type: string
-      expense:
+      monthly_expense:
         description: Expense in date range
         type: number
-      expense_change:
+      monthly_expense_change:
         description: Percentage change from previous period
         type: number
-      income:
+      monthly_income:
         description: Income in date range
         type: number
-      income_change:
+      monthly_income_change:
         description: Percentage change from previous period
         type: number
       previous_end_date:
@@ -179,6 +179,11 @@ definitions:
       total_balance:
         description: Total income - expense all time
         type: number
+    type: object
+  dto.InputTextCashflow:
+    properties:
+      message:
+        type: string
     type: object
   dto.InputTransaction:
     properties:
@@ -263,24 +268,6 @@ definitions:
     required:
     - payload
     - quoted_stanza_id
-    type: object
-  dto.TransactionPayload:
-    properties:
-      amount:
-        type: number
-      category_id:
-        type: integer
-      description:
-        type: string
-      type:
-        type: string
-    type: object
-  dto.TransactionResponseAi:
-    properties:
-      req_payload:
-        items:
-          $ref: '#/definitions/dto.TransactionPayload'
-        type: array
     type: object
   dto.TransactionSummaryResponse:
     properties:
@@ -386,6 +373,24 @@ definitions:
     x-enum-varnames:
     - TypeIncome
     - TypeExpense
+  pannypal_internal_service_ai-cashflow_dto.TransactionPayload:
+    properties:
+      amount:
+        type: number
+      category_id:
+        type: integer
+      description:
+        type: string
+      type:
+        type: string
+    type: object
+  pannypal_internal_service_ai-cashflow_dto.TransactionResponseAi:
+    properties:
+      req_payload:
+        items:
+          $ref: '#/definitions/pannypal_internal_service_ai-cashflow_dto.TransactionPayload'
+        type: array
+    type: object
   pannypal_internal_service_analytics_dto.PeriodInfo:
     properties:
       end_date:
@@ -497,7 +502,7 @@ paths:
         "201":
           description: Transaction created successfully
           schema:
-            $ref: '#/definitions/dto.TransactionResponseAi'
+            $ref: '#/definitions/pannypal_internal_service_ai-cashflow_dto.TransactionResponseAi'
         "400":
           description: Bad Request
           schema:
@@ -505,6 +510,32 @@ paths:
       summary: Create AI transaction
       tags:
       - AI Cashflow APIs
+  /ai/cashflow/text:
+    post:
+      consumes:
+      - application/json
+      description: Extract financial transactions from text input using AI
+      parameters:
+      - description: Text cashflow input
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.InputTextCashflow'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Transactions extracted successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Process text input for cashflow using AI
+      tags:
+      - AI APIs
   /analytics/categories:
     get:
       consumes:
@@ -515,11 +546,11 @@ paths:
         in: query
         name: phone_number
         type: string
-      - description: Analysis from this date
+      - description: 'Analysis from this date (format: 2006-01-02)'
         in: query
         name: start_date
         type: string
-      - description: Analysis until this date
+      - description: 'Analysis until this date (format: 2006-01-02)'
         in: query
         name: end_date
         type: string
@@ -980,11 +1011,11 @@ paths:
         in: query
         name: category_id
         type: integer
-      - description: Filter transactions from this date (ISO format)
+      - description: 'Filter transactions from this date (format: 2006-01-02)'
         in: query
         name: start_date
         type: string
-      - description: Filter transactions until this date (ISO format)
+      - description: 'Filter transactions until this date (format: 2006-01-02)'
         in: query
         name: end_date
         type: string
@@ -1148,11 +1179,11 @@ paths:
         in: query
         name: phone_number
         type: string
-      - description: Summary from this date
+      - description: 'Summary from this date (format: 2006-01-02)'
         in: query
         name: start_date
         type: string
-      - description: Summary until this date
+      - description: 'Summary until this date (format: 2006-01-02)'
         in: query
         name: end_date
         type: string

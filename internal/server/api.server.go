@@ -3,6 +3,7 @@ package serverApp
 import (
 	"context"
 
+	aiHandler "pannypal/internal/handler/ai"
 	aicashflowHandler "pannypal/internal/handler/ai-cashflow"
 	analyticsHandler "pannypal/internal/handler/analytics"
 	budgetHandler "pannypal/internal/handler/budget"
@@ -23,6 +24,7 @@ import (
 	logdata "pannypal/internal/repository/log-data"
 	"pannypal/internal/repository/transaction"
 	"pannypal/internal/repository/user"
+	aiService "pannypal/internal/service/ai"
 	aicashflowService "pannypal/internal/service/ai-cashflow"
 	analyticsService "pannypal/internal/service/analytics"
 	budgetService "pannypal/internal/service/budget"
@@ -129,6 +131,7 @@ func InitRoutes(
 	budgetSvc := budgetService.NewService(ctx, redis, rp)
 	analyticsSvc := analyticsService.NewService(ctx, redis, rp, db)
 	outgoingSvc := outgoingService.NewService(ctx, redis, rp)
+	aiSvc := aiService.NewService(ctx, redis, rp, ai, outgoingSvc)
 	aiCashflowSvc := aicashflowService.NewService(ctx, redis, rp, ai, outgoingSvc)
 	webhookSvc := webhookService.NewService(ctx, redis, rp, aiCashflowSvc)
 
@@ -137,6 +140,7 @@ func InitRoutes(
 	categoryHandler := categoryHandler.NewHandler(ctx, rb, categorySvc)
 	budgetHandler := budgetHandler.NewHandler(ctx, rb, budgetSvc)
 	analyticsHandler := analyticsHandler.NewHandler(ctx, rb, analyticsSvc)
+	aiHandler := aiHandler.NewHandler(ctx, aiSvc)
 	aiCashflowHandler := aicashflowHandler.NewHandler(ctx, rb, aiCashflowSvc)
 	webhookHandler := webhookHandler.NewHandler(ctx, rb, webhookSvc)
 
@@ -145,6 +149,7 @@ func InitRoutes(
 	categoryHandler.NewRoutes(e)
 	budgetHandler.NewRoutes(e)
 	analyticsHandler.NewRoutes(e)
+	aiHandler.NewRoutes(e)
 	aiCashflowHandler.NewRoutes(e)
 	webhookHandler.NewRoutes(e)
 }

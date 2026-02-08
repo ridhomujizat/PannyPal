@@ -71,3 +71,23 @@ func PointerToInt(value *int) int {
 	}
 	return *value
 }
+
+func FormatCurrency(amount int) string {
+	if amount < 1000 {
+		return strconv.Itoa(amount)
+	}
+
+	// Convert to string
+	str := strconv.Itoa(amount)
+
+	// Add dots from right to left
+	result := ""
+	for i, char := range str {
+		if i > 0 && (len(str)-i)%3 == 0 {
+			result += "."
+		}
+		result += string(char)
+	}
+
+	return result
+}

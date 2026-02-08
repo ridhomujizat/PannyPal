@@ -132,7 +132,47 @@ const docTemplate = `{
                     "201": {
                         "description": "Transaction created successfully",
                         "schema": {
-                            "$ref": "#/definitions/dto.TransactionResponseAi"
+                            "$ref": "#/definitions/pannypal_internal_service_ai-cashflow_dto.TransactionResponseAi"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/ai/cashflow/text": {
+            "post": {
+                "description": "Extract financial transactions from text input using AI",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "AI APIs"
+                ],
+                "summary": "Process text input for cashflow using AI",
+                "parameters": [
+                    {
+                        "description": "Text cashflow input",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.InputTextCashflow"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Transactions extracted successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
                         }
                     },
                     "400": {
@@ -166,13 +206,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Analysis from this date",
+                        "description": "Analysis from this date (format: 2006-01-02)",
                         "name": "start_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Analysis until this date",
+                        "description": "Analysis until this date (format: 2006-01-02)",
                         "name": "end_date",
                         "in": "query"
                     },
@@ -870,13 +910,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Filter transactions from this date (ISO format)",
+                        "description": "Filter transactions from this date (format: 2006-01-02)",
                         "name": "start_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Filter transactions until this date (ISO format)",
+                        "description": "Filter transactions until this date (format: 2006-01-02)",
                         "name": "end_date",
                         "in": "query"
                     },
@@ -969,13 +1009,13 @@ const docTemplate = `{
                     },
                     {
                         "type": "string",
-                        "description": "Summary from this date",
+                        "description": "Summary from this date (format: 2006-01-02)",
                         "name": "start_date",
                         "in": "query"
                     },
                     {
                         "type": "string",
-                        "description": "Summary until this date",
+                        "description": "Summary until this date (format: 2006-01-02)",
                         "name": "end_date",
                         "in": "query"
                     },
@@ -1440,19 +1480,19 @@ const docTemplate = `{
                 "end_date": {
                     "type": "string"
                 },
-                "expense": {
+                "monthly_expense": {
                     "description": "Expense in date range",
                     "type": "number"
                 },
-                "expense_change": {
+                "monthly_expense_change": {
                     "description": "Percentage change from previous period",
                     "type": "number"
                 },
-                "income": {
+                "monthly_income": {
                     "description": "Income in date range",
                     "type": "number"
                 },
-                "income_change": {
+                "monthly_income_change": {
                     "description": "Percentage change from previous period",
                     "type": "number"
                 },
@@ -1468,6 +1508,14 @@ const docTemplate = `{
                 "total_balance": {
                     "description": "Total income - expense all time",
                     "type": "number"
+                }
+            }
+        },
+        "dto.InputTextCashflow": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string"
                 }
             }
         },
@@ -1596,34 +1644,6 @@ const docTemplate = `{
                 },
                 "quoted_stanza_id": {
                     "type": "string"
-                }
-            }
-        },
-        "dto.TransactionPayload": {
-            "type": "object",
-            "properties": {
-                "amount": {
-                    "type": "number"
-                },
-                "category_id": {
-                    "type": "integer"
-                },
-                "description": {
-                    "type": "string"
-                },
-                "type": {
-                    "type": "string"
-                }
-            }
-        },
-        "dto.TransactionResponseAi": {
-            "type": "object",
-            "properties": {
-                "req_payload": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/dto.TransactionPayload"
-                    }
                 }
             }
         },
@@ -1781,6 +1801,34 @@ const docTemplate = `{
                 "TypeIncome",
                 "TypeExpense"
             ]
+        },
+        "pannypal_internal_service_ai-cashflow_dto.TransactionPayload": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "category_id": {
+                    "type": "integer"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "type": {
+                    "type": "string"
+                }
+            }
+        },
+        "pannypal_internal_service_ai-cashflow_dto.TransactionResponseAi": {
+            "type": "object",
+            "properties": {
+                "req_payload": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/pannypal_internal_service_ai-cashflow_dto.TransactionPayload"
+                    }
+                }
+            }
         },
         "pannypal_internal_service_analytics_dto.PeriodInfo": {
             "type": "object",
