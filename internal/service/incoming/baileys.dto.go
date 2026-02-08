@@ -131,28 +131,25 @@ func (s *Service) HandleCashFlowFunction(message *dto.BaileysIncomingMessage) er
 	}
 	rawMessage := json.RawMessage(reqBytes)
 
+	messageOut, err := s.outgoing.HandleWebhookEventWaha(Outgoing)
+	if err != nil {
+		return err
+	}
 	modelMessageToReply := models.MessageToReply{
-		MessageID:   message.Key.ID,
+		MessageID:   messageOut.Id,
 		FeatureType: enum.FeatureTypeAIcashflow,
 		Messsage:    responseMessage,
 		Additional:  &rawMessage,
 		Participant: message.Key.Participant,
 	}
 
-	saveTODraft, err := s.rp.Bot.CreateMessageToReply(modelMessageToReply)
+	_, err = s.rp.Bot.CreateMessageToReply(modelMessageToReply)
 	if err != nil {
 		Outgoing.Message = err.Error()
 		_, err = s.outgoing.HandleWebhookEventWaha(Outgoing)
 		if err != nil {
 			return err
 		}
-		return err
-	}
-
-	fmt.Println("saveTODraft", saveTODraft)
-
-	_, err = s.outgoing.HandleWebhookEventWaha(Outgoing)
-	if err != nil {
 		return err
 	}
 
