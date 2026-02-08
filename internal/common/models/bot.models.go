@@ -13,6 +13,7 @@ type MessageToReply struct {
 	FeatureType enum.FeatureType `gorm:"type:varchar(50)" json:"feature_type"`
 	Messsage    string           `gorm:"type:text" json:"message"`
 	Additional  *json.RawMessage `gorm:"type:jsonb" json:"additional"`
+	Participant *string          `gorm:"type:varchar(100)" json:"participant"`
 }
 
 type AccountBot struct {
