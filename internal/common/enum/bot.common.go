@@ -3,5 +3,6 @@ package enum
 type BotType string
 
 const (
-	BotTypeWaha BotType = "WAHA"
+	BotTypeWaha    BotType = "WAHA"
+	BotTypeBaileys BotType = "BAILEYS"
 )

@@ -182,3 +182,47 @@ type ReportingTokenInfo struct {
 	Version        int64            `json:"version"`
 	ReportingTag   map[string]int64 `json:"reportingTag"`
 }
+
+type BaileysOutgoingResponse struct {
+	Success bool                 `json:"success"`
+	Message string               `json:"message"`
+	Data    *BaileysOutgoingData `json:"data,omitempty"`
+}
+
+// ===============================
+// Outgoing Data
+// ===============================
+
+type BaileysOutgoingData struct {
+	Key              BaileysOutgoingKey     `json:"key"`
+	Message          BaileysOutgoingMessage `json:"message"`
+	MessageTimestamp string                 `json:"messageTimestamp"`
+	Status           string                 `json:"status"`
+	Participant      string                 `json:"participant,omitempty"` // group only
+}
+
+// ===============================
+// Message Key
+// ===============================
+
+type BaileysOutgoingKey struct {
+	RemoteJid string `json:"remoteJid"`
+	FromMe    bool   `json:"fromMe"`
+	ID        string `json:"id"`
+}
+
+// ===============================
+// Outgoing Message Body
+// ===============================
+
+type BaileysOutgoingMessage struct {
+	ExtendedTextMessage *BaileysOutgoingExtendedTextMessage `json:"extendedTextMessage,omitempty"`
+}
+
+// ===============================
+// Extended Text Message
+// ===============================
+
+type BaileysOutgoingExtendedTextMessage struct {
+	Text string `json:"text"`
+}

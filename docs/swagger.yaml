@@ -362,9 +362,11 @@ definitions:
   enum.BotType:
     enum:
     - WAHA
+    - BAILEYS
     type: string
     x-enum-varnames:
     - BotTypeWaha
+    - BotTypeBaileys
   models.TransactionType:
     enum:
     - INCOME
@@ -993,6 +995,31 @@ paths:
       summary: Update category
       tags:
       - Category APIs
+  /incoming/baileys:
+    post:
+      consumes:
+      - application/json
+      description: Handles webhook events from Baileys WhatsApp service
+      parameters:
+      - description: Baileys webhook event payload
+        in: body
+        name: webhook
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Webhook event processed successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Webhook Event Baileys
+      tags:
+      - Webhook
   /transactions:
     get:
       consumes:

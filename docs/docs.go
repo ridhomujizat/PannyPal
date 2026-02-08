@@ -876,6 +876,44 @@ const docTemplate = `{
                 }
             }
         },
+        "/incoming/baileys": {
+            "post": {
+                "description": "Handles webhook events from Baileys WhatsApp service",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Webhook"
+                ],
+                "summary": "Webhook Event Baileys",
+                "parameters": [
+                    {
+                        "description": "Baileys webhook event payload",
+                        "name": "webhook",
+                        "in": "body",
+                        "required": true,
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Webhook event processed successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/transactions": {
             "get": {
                 "description": "List all transactions with filters and pagination",
@@ -1785,10 +1823,12 @@ const docTemplate = `{
         "enum.BotType": {
             "type": "string",
             "enum": [
-                "WAHA"
+                "WAHA",
+                "BAILEYS"
             ],
             "x-enum-varnames": [
-                "BotTypeWaha"
+                "BotTypeWaha",
+                "BotTypeBaileys"
             ]
         },
         "models.TransactionType": {
