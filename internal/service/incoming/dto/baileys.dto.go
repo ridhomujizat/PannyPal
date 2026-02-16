@@ -1,123 +1,99 @@
 package dto
 
 // ===============================
-// Root Incoming Payload
+// Simplified Incoming Message
 // ===============================
 
-type BaileysIncomingMessage struct {
-	SessionID   string             `json:"sessionId"`
-	From        string             `json:"from"`
-	MessageType string             `json:"messageType"`
-	Message     BaileysMessageBody `json:"message"`
-	Timestamp   int64              `json:"timestamp"`
-	Key         BaileysMessageKey  `json:"key"`
+// SimplifiedIncomingMessage represents the clean webhook payload format
+type SimplifiedIncomingMessage struct {
+	// Session & Basic Info
+	SessionID string `json:"sessionId"`
+	MessageID string `json:"messageId"`
+	Timestamp int64  `json:"timestamp"`
+
+	// Sender Info
+	From     string  `json:"from"`     // Clean phone number (no @s.whatsapp.net)
+	FromName *string `json:"fromName"` // Sender's WhatsApp display name
+
+	// Message Type
+	MessageType string `json:"messageType"` // text, image, video, audio, document, location, contact, sticker, unknown
+
+	// Chat Context
+	IsGroup     bool    `json:"isGroup"`
+	ChatID      string  `json:"chatId"`      // Full JID for reference
+	Participant *string `json:"participant"` // Sender's number in group (for groups only)
+
+	// Content (varies by message type)
+	Content MessageContent `json:"content"`
+
+	// Reply Context (optional)
+	QuotedMessage *QuotedMessageInfo `json:"quotedMessage,omitempty"`
 }
 
 // ===============================
-// Message Key
+// Message Content
 // ===============================
 
-type BaileysMessageKey struct {
-	RemoteJid   string  `json:"remoteJid"`
-	ID          string  `json:"id"`
-	FromMe      bool    `json:"fromMe"`
-	Participant *string `json:"participant,omitempty"` // group only
+// MessageContent represents the message content (varies by type)
+type MessageContent struct {
+	Type string `json:"type"` // text, image, video, audio, document, location, contact, sticker, unknown
+
+	// Text content
+	Text *string `json:"text,omitempty"`
+
+	// Media content (image, video, audio, document, sticker)
+	Caption              *string               `json:"caption,omitempty"`
+	Mimetype             *string               `json:"mimetype,omitempty"`
+	FileName             *string               `json:"fileName,omitempty"`
+	FileSize             *int64                `json:"fileSize,omitempty"`
+	Duration             *int                  `json:"duration,omitempty"`
+	DownloadInstructions *DownloadInstructions `json:"downloadInstructions,omitempty"`
+
+	// Location content
+	Latitude  *float64 `json:"latitude,omitempty"`
+	Longitude *float64 `json:"longitude,omitempty"`
+	Name      *string  `json:"name,omitempty"`
+	Address   *string  `json:"address,omitempty"`
+
+	// Contact content
+	DisplayName *string   `json:"displayName,omitempty"`
+	Vcard       *string   `json:"vcard,omitempty"`
+	Phones      *[]string `json:"phones,omitempty"`
+
+	// Unknown content
+	Description *string `json:"description,omitempty"`
 }
 
 // ===============================
-// Message Body
+// Download Instructions
 // ===============================
 
-type BaileysMessageBody struct {
-	Conversation        string                      `json:"conversation,omitempty"`
-	ExtendedTextMessage *BaileysExtendedTextMessage `json:"extendedTextMessage,omitempty"`
-	MessageContextInfo  *BaileysMessageContextInfo  `json:"messageContextInfo,omitempty"`
+type DownloadInstructions struct {
+	Method   string                 `json:"method"`
+	Endpoint string                 `json:"endpoint"`
+	Body     map[string]interface{} `json:"body"`
 }
 
 // ===============================
-// Extended Text Message
+// Quoted Message Info
 // ===============================
 
-type BaileysExtendedTextMessage struct {
-	Text                  string              `json:"text"`
-	ContextInfo           *BaileysContextInfo `json:"contextInfo,omitempty"`
-	InviteLinkGroupTypeV2 string              `json:"inviteLinkGroupTypeV2,omitempty"`
+type QuotedMessageInfo struct {
+	MessageID string  `json:"messageId"`
+	Text      *string `json:"text,omitempty"`
 }
 
 // ===============================
-// Context Info (Reply / Ephemeral)
+// Helper Methods
 // ===============================
 
-type BaileysContextInfo struct {
-	StanzaID                  string                   `json:"stanzaId,omitempty"`
-	Participant               string                   `json:"participant,omitempty"`
-	QuotedMessage             *BaileysQuotedMessage    `json:"quotedMessage,omitempty"`
-	EphemeralSettingTimestamp string                   `json:"ephemeralSettingTimestamp,omitempty"`
-	DisappearingMode          *BaileysDisappearingMode `json:"disappearingMode,omitempty"`
-}
-
-// ===============================
-// Quoted / Reply Message
-// ===============================
-
-type BaileysQuotedMessage struct {
-	Conversation       string                 `json:"conversation,omitempty"`
-	MessageContextInfo map[string]interface{} `json:"messageContextInfo,omitempty"`
-}
-
-// ===============================
-// Disappearing Mode
-// ===============================
-
-type BaileysDisappearingMode struct {
-	Initiator     string `json:"initiator"`
-	Trigger       string `json:"trigger"`
-	InitiatedByMe bool   `json:"initiatedByMe"`
-}
-
-// ===============================
-// Message Context Metadata
-// ===============================
-
-type BaileysMessageContextInfo struct {
-	DeviceListMetadata        *BaileysDeviceListMetadata `json:"deviceListMetadata,omitempty"`
-	DeviceListMetadataVersion int                        `json:"deviceListMetadataVersion,omitempty"`
-	MessageSecret             string                     `json:"messageSecret,omitempty"`
-	LimitSharingV2            *BaileysLimitSharingV2     `json:"limitSharingV2,omitempty"`
-}
-
-// ===============================
-// Device Metadata
-// ===============================
-
-type BaileysDeviceListMetadata struct {
-	SenderKeyHash       string `json:"senderKeyHash"`
-	SenderTimestamp     string `json:"senderTimestamp"`
-	SenderAccountType   string `json:"senderAccountType"`
-	ReceiverAccountType string `json:"receiverAccountType"`
-	RecipientKeyHash    string `json:"recipientKeyHash"`
-	RecipientTimestamp  string `json:"recipientTimestamp"`
-}
-
-// ===============================
-// Limit Sharing
-// ===============================
-
-type BaileysLimitSharingV2 struct {
-	SharingLimited               bool   `json:"sharingLimited"`
-	Trigger                      string `json:"trigger"`
-	LimitSharingSettingTimestamp string `json:"limitSharingSettingTimestamp"`
-	InitiatedByMe                bool   `json:"initiatedByMe"`
-}
-
-func (m *BaileysIncomingMessage) GetText() string {
-	if m.Message.Conversation != "" {
-		return m.Message.Conversation
+// GetText extracts text from the message content
+func (m *SimplifiedIncomingMessage) GetText() string {
+	if m.Content.Text != nil {
+		return *m.Content.Text
 	}
-
-	if m.Message.ExtendedTextMessage != nil {
-		return m.Message.ExtendedTextMessage.Text
+	if m.Content.Caption != nil {
+		return *m.Content.Caption
 	}
-
 	return ""
 }

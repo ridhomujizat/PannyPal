@@ -16,7 +16,7 @@ import (
 
 func (s *Service) HandleWebhookEventBaileys(payload interface{}) *types.Response {
 
-	incoming, err := helper.JSONToStruct[dto.BaileysIncomingMessage](payload)
+	incoming, err := helper.JSONToStruct[dto.SimplifiedIncomingMessage](payload)
 	if err != nil {
 		fmt.Println("Error parsing payload:", err)
 		return helper.ParseResponse(&types.Response{
@@ -26,7 +26,7 @@ func (s *Service) HandleWebhookEventBaileys(payload interface{}) *types.Response
 		})
 	}
 
-	if incoming.MessageType == "extendedTextMessage" {
+	if incoming.QuotedMessage != nil {
 		return s.HandleExtendedTextMessage(incoming)
 	}
 
@@ -50,8 +50,8 @@ func (s *Service) HandleWebhookEventBaileys(payload interface{}) *types.Response
 	})
 }
 
-func (s *Service) HandleExtendedTextMessage(message *dto.BaileysIncomingMessage) *types.Response {
-	id := message.Message.ExtendedTextMessage.ContextInfo.StanzaID
+func (s *Service) HandleExtendedTextMessage(message *dto.SimplifiedIncomingMessage) *types.Response {
+	id := message.QuotedMessage.MessageID
 	fmt.Println("id", id)
 	messageToReply, err := s.rp.Bot.MessageToReplyMessage(id)
 	if err != nil {
@@ -93,14 +93,14 @@ func (s *Service) HandleExtendedTextMessage(message *dto.BaileysIncomingMessage)
 	})
 }
 
-func (s *Service) HandleCashFlowFunction(message *dto.BaileysIncomingMessage) error {
+func (s *Service) HandleCashFlowFunction(message *dto.SimplifiedIncomingMessage) error {
 	Outgoing := dtoOutgoing.PayloadOutgoing{
-		To:             message.Key.RemoteJid,
+		To:             message.ChatID,
 		AccountId:      message.SessionID,
 		Message:        "Ada yang error (BOT)",
-		ReplyToMessage: &message.Key.ID,
+		ReplyToMessage: &message.MessageID,
 		Type:           "text",
-		Participant:    message.Key.Participant,
+		Participant:    message.Participant,
 	}
 
 	text := message.GetText()
@@ -135,12 +135,15 @@ func (s *Service) HandleCashFlowFunction(message *dto.BaileysIncomingMessage) er
 	if err != nil {
 		return err
 	}
+	if messageOut == nil {
+		return fmt.Errorf("failed to send outgoing message: no response from outgoing service")
+	}
 	modelMessageToReply := models.MessageToReply{
 		MessageID:   messageOut.Id,
 		FeatureType: enum.FeatureTypeAIcashflow,
 		Messsage:    responseMessage,
 		Additional:  &rawMessage,
-		Participant: message.Key.Participant,
+		Participant: message.Participant,
 	}
 
 	_, err = s.rp.Bot.CreateMessageToReply(modelMessageToReply)
@@ -156,13 +159,13 @@ func (s *Service) HandleCashFlowFunction(message *dto.BaileysIncomingMessage) er
 	return nil
 }
 
-func (s *Service) HandleCashFlowFunctionReplyAction(message *dto.BaileysIncomingMessage, messageToReply *models.MessageToReply) error {
+func (s *Service) HandleCashFlowFunctionReplyAction(message *dto.SimplifiedIncomingMessage, messageToReply *models.MessageToReply) error {
 	Outgoing := dtoOutgoing.PayloadOutgoing{
-		To:             message.Key.RemoteJid,
+		To:             message.ChatID,
 		AccountId:      message.SessionID,
-		ReplyToMessage: &message.Key.ID,
+		ReplyToMessage: &message.MessageID,
 		Type:           "text",
-		Participant:    message.Key.Participant,
+		Participant:    message.Participant,
 	}
 
 	text := message.GetText()
@@ -190,9 +193,9 @@ func (s *Service) HandleCashFlowFunctionReplyAction(message *dto.BaileysIncoming
 	}
 }
 
-func (s *Service) SaveTransaction(message *dto.BaileysIncomingMessage, messageToReply *models.MessageToReply, Outgoing dtoOutgoing.PayloadOutgoing) error {
-	// Extract phone number from RemoteJid (format: 6281234567890@s.whatsapp.net)
-	phoneNumber := message.Key.RemoteJid
+func (s *Service) SaveTransaction(message *dto.SimplifiedIncomingMessage, messageToReply *models.MessageToReply, Outgoing dtoOutgoing.PayloadOutgoing) error {
+	// Use clean phone number directly (no longer needs cleaning, already clean)
+	phoneNumber := message.From
 
 	user, err := s.GetUser(phoneNumber)
 	if err != nil {
@@ -259,7 +262,7 @@ func (s *Service) SaveTransaction(message *dto.BaileysIncomingMessage, messageTo
 	return nil
 }
 
-func (s *Service) EditTransaction(message *dto.BaileysIncomingMessage, messageToReply *models.MessageToReply, Outgoing dtoOutgoing.PayloadOutgoing) error {
+func (s *Service) EditTransaction(message *dto.SimplifiedIncomingMessage, messageToReply *models.MessageToReply, Outgoing dtoOutgoing.PayloadOutgoing) error {
 	text := message.GetText()
 
 	payload := dtoAI.InputTextCashflow{
@@ -306,7 +309,7 @@ func (s *Service) EditTransaction(message *dto.BaileysIncomingMessage, messageTo
 	return nil
 }
 
-func (s *Service) CancelTransaction(message *dto.BaileysIncomingMessage, messageToReply *models.MessageToReply, Outgoing dtoOutgoing.PayloadOutgoing) error {
+func (s *Service) CancelTransaction(message *dto.SimplifiedIncomingMessage, messageToReply *models.MessageToReply, Outgoing dtoOutgoing.PayloadOutgoing) error {
 	err := s.rp.Bot.DeleteMessageToReply(messageToReply.MessageID)
 	if err != nil {
 		fmt.Println("Error deleting MessageToReply:", err)
