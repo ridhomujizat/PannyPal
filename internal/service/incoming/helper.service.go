@@ -2,6 +2,7 @@ package incoming
 
 import (
 	"fmt"
+	"pannypal/internal/common/enum"
 	"pannypal/internal/common/models"
 	"strings"
 
@@ -134,4 +135,8 @@ func (s *Service) formatCurrency(amount int) string {
 		result = append(result, digit)
 	}
 	return string(result)
+}
+
+func (s *Service) IsCashFlowFunction(payload string) bool {
+	return strings.Contains(payload, string(enum.TagKeuangan))
 }
