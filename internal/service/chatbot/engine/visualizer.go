@@ -147,15 +147,64 @@ func (v *Visualizer) generatePieChart(rawData interface{}) (*dto.VisualizationDa
 		Colors: generateColors(10), // Generate up to 10 colors
 	}
 
-	// Extract categories for pie chart
-	if categories, ok := dataMap["categories"].([]interface{}); ok {
+	// Try to extract categories - check multiple possible structures
+	var categories []interface{}
+
+	// Structure 1: Top-level categories (from FetchCategoryBreakdown)
+	if cats, ok := dataMap["categories"].([]interface{}); ok {
+		categories = cats
+	}
+
+	// Structure 2: Nested under expenses (from FetchAllCategoriesComparison)
+	if categories == nil {
+		if expenses, ok := dataMap["expenses"].(map[string]interface{}); ok {
+			if cats, ok := expenses["categories"].([]interface{}); ok {
+				categories = cats
+			}
+		}
+	}
+
+	// Structure 3: Nested under income
+	if categories == nil {
+		if income, ok := dataMap["income"].(map[string]interface{}); ok {
+			if cats, ok := income["categories"].([]interface{}); ok {
+				categories = cats
+			}
+		}
+	}
+
+	// Extract category data
+	if categories != nil {
 		for _, cat := range categories {
-			catMap := cat.(map[string]interface{})
+			catMap, ok := cat.(map[string]interface{})
+			if !ok {
+				continue
+			}
 			if name, ok := catMap["category_name"].(string); ok {
 				chartData.Labels = append(chartData.Labels, name)
 			}
 			if amount, ok := catMap["amount"].(float64); ok {
 				chartData.Values = append(chartData.Values, amount)
+			}
+		}
+	}
+
+	// Fallback: if no categories found, try to build from summary data (current vs previous)
+	if len(chartData.Labels) == 0 {
+		if current, ok := dataMap["current"].(map[string]interface{}); ok {
+			if expense, ok := current["expense"].(float64); ok && expense > 0 {
+				chartData.Labels = append(chartData.Labels, "Pengeluaran Bulan Ini")
+				chartData.Values = append(chartData.Values, expense)
+			}
+			if income, ok := current["income"].(float64); ok && income > 0 {
+				chartData.Labels = append(chartData.Labels, "Pemasukan Bulan Ini")
+				chartData.Values = append(chartData.Values, income)
+			}
+		}
+		if previous, ok := dataMap["previous"].(map[string]interface{}); ok {
+			if expense, ok := previous["expense"].(float64); ok && expense > 0 {
+				chartData.Labels = append(chartData.Labels, "Pengeluaran Bulan Lalu")
+				chartData.Values = append(chartData.Values, expense)
 			}
 		}
 	}

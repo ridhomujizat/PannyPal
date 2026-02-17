@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Sidebar } from "@/components/dashboard/Sidebar";
-import { Header } from "@/components/dashboard/Header";
 import { ChatMessage } from "@/components/chatbot/ChatMessage";
 import { ChatInput } from "@/components/chatbot/ChatInput";
 import { TypingIndicator } from "@/components/chatbot/TypingIndicator";
@@ -14,13 +13,14 @@ import {
 } from "@/lib/api";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { MessageSquare, Loader2 } from "lucide-react";
+import { MessageSquare, Loader2, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Chatbot = () => {
     const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
     const [messages, setMessages] = useState<ChatMessageType[]>([]);
     const [isTyping, setIsTyping] = useState(false);
+    const [showSidebar, setShowSidebar] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const queryClient = useQueryClient();
 
@@ -90,6 +90,7 @@ const Chatbot = () => {
     const handleSelectConversation = (sessionId: string) => {
         setActiveSessionId(sessionId);
         setMessages([]);
+        setShowSidebar(false); // Close sidebar on mobile after selecting
     };
 
     const handleDeleteConversation = async (sessionId: string) => {
@@ -114,6 +115,7 @@ const Chatbot = () => {
     const handleNewChat = () => {
         setActiveSessionId(null);
         setMessages([]);
+        setShowSidebar(false); // Close sidebar on mobile
     };
 
     return (
@@ -122,21 +124,27 @@ const Chatbot = () => {
             <Sidebar />
 
             {/* Main Content */}
-            <main className="min-h-screen p-4 pt-20 sm:p-6 sm:pt-6 lg:pl-24 lg:p-8 overflow-hidden">
-                <div className="max-w-7xl mx-auto lg:ml-4 h-[calc(100vh-2rem)] flex flex-col">
-                    {/* Header */}
-                    <div className="mb-6">
-                        <Header
-                            startDate={new Date()}
-                            endDate={new Date()}
-                            onDateChange={() => { }}
-                        />
-                    </div>
+            <main className="min-h-screen p-3 pt-16 sm:p-4 sm:pt-6 lg:pl-24 lg:p-8 overflow-hidden">
+                <div className="max-w-7xl mx-auto lg:ml-4 h-[calc(100vh-4rem)] sm:h-[calc(100vh-2rem)] flex flex-col">
 
                     {/* Chat Container */}
-                    <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 overflow-hidden">
-                        {/* Conversation List Sidebar */}
-                        <div className="lg:col-span-1 bg-card rounded-2xl border border-sidebar shadow-sm overflow-hidden">
+                    <div className="flex-1 flex gap-4 lg:gap-6 overflow-hidden min-h-0">
+                        {/* Conversation List Sidebar - Desktop always visible, Mobile toggle */}
+                        {/* Mobile overlay backdrop */}
+                        {showSidebar && (
+                            <div
+                                className="lg:hidden fixed inset-0 bg-black/40 z-20 animate-in fade-in duration-200"
+                                onClick={() => setShowSidebar(false)}
+                            />
+                        )}
+
+                        {/* Conversation list panel */}
+                        <div className={cn(
+                            // Desktop styles
+                            "hidden lg:flex lg:w-80 lg:flex-shrink-0 bg-card rounded-2xl border border-sidebar shadow-sm overflow-hidden flex-col",
+                            // Mobile styles - slide-in overlay (z-30, below app sidebar z-40/z-50)
+                            showSidebar && "!flex fixed inset-y-0 left-0 w-[85%] max-w-sm z-30 rounded-none border-r lg:relative lg:inset-auto lg:w-80 lg:rounded-2xl lg:border animate-in slide-in-from-left duration-300"
+                        )}>
                             <ConversationList
                                 conversations={conversations}
                                 activeSessionId={activeSessionId}
@@ -147,14 +155,26 @@ const Chatbot = () => {
                         </div>
 
                         {/* Chat Area */}
-                        <div className="lg:col-span-3 bg-card rounded-2xl border border-sidebar shadow-sm flex flex-col overflow-hidden">
+                        <div className="flex-1 bg-card rounded-2xl border border-sidebar shadow-sm flex flex-col overflow-hidden min-w-0">
                             {/* Chat Header */}
-                            <div className="p-4 border-b border-sidebar flex items-center gap-2">
-                                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
-                                    <MessageSquare className="w-5 h-5 text-primary-foreground" />
+                            <div className="p-3 sm:p-4 border-b border-sidebar flex items-center gap-2">
+                                {/* Mobile sidebar toggle */}
+                                <button
+                                    onClick={() => setShowSidebar(!showSidebar)}
+                                    className="lg:hidden w-9 h-9 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/80 transition-colors flex-shrink-0"
+                                >
+                                    {showSidebar ? (
+                                        <PanelLeftClose className="w-4 h-4 text-muted-foreground" />
+                                    ) : (
+                                        <PanelLeftOpen className="w-4 h-4 text-muted-foreground" />
+                                    )}
+                                </button>
+
+                                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0">
+                                    <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5 text-primary-foreground" />
                                 </div>
-                                <div>
-                                    <h2 className="font-semibold text-foreground">
+                                <div className="min-w-0 flex-1">
+                                    <h2 className="font-semibold text-foreground text-sm sm:text-base truncate">
                                         {conversationData?.title || "New Conversation"}
                                     </h2>
                                     <p className="text-xs text-muted-foreground">
@@ -164,18 +184,18 @@ const Chatbot = () => {
                             </div>
 
                             {/* Messages Container */}
-                            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+                            <div className="flex-1 overflow-y-auto p-3 sm:p-4 lg:p-6 space-y-4">
                                 {isLoadingConversation ? (
                                     <div className="flex items-center justify-center h-full">
                                         <Loader2 className="w-8 h-8 animate-spin text-primary" />
                                     </div>
                                 ) : messages.length === 0 && !activeSessionId ? (
-                                    <div className="flex flex-col items-center justify-center h-full text-center">
-                                        <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mb-4">
-                                            <MessageSquare className="w-10 h-10 text-primary" />
+                                    <div className="flex flex-col items-center justify-center h-full text-center px-4">
+                                        <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 flex items-center justify-center mb-4">
+                                            <MessageSquare className="w-8 h-8 sm:w-10 sm:h-10 text-primary" />
                                         </div>
-                                        <h3 className="text-lg font-semibold mb-2">Start a Conversation</h3>
-                                        <p className="text-muted-foreground text-sm max-w-md">
+                                        <h3 className="text-base sm:text-lg font-semibold mb-2">Start a Conversation</h3>
+                                        <p className="text-muted-foreground text-xs sm:text-sm max-w-md">
                                             Ask me anything about your finances! I can help you analyze spending,
                                             track income, set goals, and provide financial insights.
                                         </p>
@@ -192,7 +212,7 @@ const Chatbot = () => {
                             </div>
 
                             {/* Input Area */}
-                            <div className="p-4 border-t border-sidebar bg-background/50">
+                            <div className="p-3 sm:p-4 border-t border-sidebar bg-background/50">
                                 <ChatInput
                                     onSend={handleSendMessage}
                                     disabled={isTyping}

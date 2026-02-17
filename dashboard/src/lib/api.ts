@@ -230,9 +230,17 @@ export const useCategoryTransactions = (
 // Chatbot API Types
 export interface ChatMetadata {
   visualization?: {
-    type: string;
-    data: any;
-    config?: any;
+    type: "bar" | "pie" | "line" | "table";
+    data: {
+      labels: string[];
+      values: number[];
+      colors?: string[];
+    };
+    config?: {
+      x_label?: string;
+      y_label?: string;
+      format?: string;
+    };
   };
   statistics?: {
     total: number;
