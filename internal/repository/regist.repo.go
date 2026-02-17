@@ -5,6 +5,7 @@ import (
 	"pannypal/internal/repository/bot"
 	"pannypal/internal/repository/budget"
 	"pannypal/internal/repository/category"
+	"pannypal/internal/repository/chatbot"
 	logdata "pannypal/internal/repository/log-data"
 	"pannypal/internal/repository/transaction"
 	"pannypal/internal/repository/user"
@@ -18,4 +19,5 @@ type IRepository struct {
 	Analytics   analytics.IRepository
 	LogData     logdata.IRepository
 	Bot         bot.IRepository
+	Chatbot     chatbot.IRepository
 }

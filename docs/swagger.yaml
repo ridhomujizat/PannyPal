@@ -105,6 +105,36 @@ definitions:
       type:
         $ref: '#/definitions/models.TransactionType'
     type: object
+  dto.ChatMessageResponse:
+    properties:
+      content:
+        type: string
+      created_at:
+        type: string
+      metadata:
+        description: Chart data, tables, etc
+      response_time:
+        type: integer
+      role:
+        type: string
+      session_id:
+        type: string
+      token_used:
+        type: integer
+    type: object
+  dto.ConversationResponse:
+    properties:
+      is_active:
+        type: boolean
+      last_message:
+        type: string
+      message_count:
+        type: integer
+      session_id:
+        type: string
+      title:
+        type: string
+    type: object
   dto.CreateBudgetRequest:
     properties:
       amount:
@@ -268,6 +298,16 @@ definitions:
     required:
     - payload
     - quoted_stanza_id
+    type: object
+  dto.SendMessageRequest:
+    properties:
+      message:
+        type: string
+      session_id:
+        description: Optional, create new if empty
+        type: string
+    required:
+    - message
     type: object
   dto.TransactionSummaryResponse:
     properties:
@@ -995,6 +1035,118 @@ paths:
       summary: Update category
       tags:
       - Category APIs
+  /chatbot/conversations:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve all chat conversations
+      parameters:
+      - default: 20
+        description: Limit number of conversations
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Conversations retrieved successfully
+          schema:
+            items:
+              $ref: '#/definitions/dto.ConversationResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get all conversations
+      tags:
+      - Chatbot APIs
+  /chatbot/conversations/{session_id}:
+    get:
+      consumes:
+      - application/json
+      description: Retrieve messages from a specific conversation
+      parameters:
+      - description: Session ID
+        in: path
+        name: session_id
+        required: true
+        type: string
+      - default: 50
+        description: Limit number of messages
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Conversation retrieved successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Conversation not found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Get a specific conversation
+      tags:
+      - Chatbot APIs
+  /chatbot/conversations/{session_id}/clear:
+    post:
+      consumes:
+      - application/json
+      description: Mark a conversation as inactive
+      parameters:
+      - description: Session ID
+        in: path
+        name: session_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Conversation cleared successfully
+          schema:
+            $ref: '#/definitions/types.Response'
+        "404":
+          description: Conversation not found
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Clear/archive a conversation
+      tags:
+      - Chatbot APIs
+  /chatbot/send:
+    post:
+      consumes:
+      - application/json
+      description: Send a message and get AI response with analysis
+      parameters:
+      - description: Send message request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.SendMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Message sent successfully
+          schema:
+            $ref: '#/definitions/dto.ChatMessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/types.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/types.Response'
+      summary: Send a message to chatbot
+      tags:
+      - Chatbot APIs
   /incoming/baileys:
     post:
       consumes:

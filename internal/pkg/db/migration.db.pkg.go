@@ -31,6 +31,9 @@ func (db *Database) RunMigrations() error {
 		&models.LogPrompt{},
 		&models.AccountBot{},
 		&models.MessageToReply{},
+		// Chatbot tables
+		&models.ChatConversation{},
+		&models.ChatMessage{},
 	}
 
 	for _, model := range models {

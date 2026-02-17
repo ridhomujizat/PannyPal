@@ -876,6 +876,176 @@ const docTemplate = `{
                 }
             }
         },
+        "/chatbot/conversations": {
+            "get": {
+                "description": "Retrieve all chat conversations",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chatbot APIs"
+                ],
+                "summary": "Get all conversations",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 20,
+                        "description": "Limit number of conversations",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conversations retrieved successfully",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/dto.ConversationResponse"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/chatbot/conversations/{session_id}": {
+            "get": {
+                "description": "Retrieve messages from a specific conversation",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chatbot APIs"
+                ],
+                "summary": "Get a specific conversation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "session_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 50,
+                        "description": "Limit number of messages",
+                        "name": "limit",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conversation retrieved successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Conversation not found",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/chatbot/conversations/{session_id}/clear": {
+            "post": {
+                "description": "Mark a conversation as inactive",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chatbot APIs"
+                ],
+                "summary": "Clear/archive a conversation",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "session_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Conversation cleared successfully",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Conversation not found",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/chatbot/send": {
+            "post": {
+                "description": "Send a message and get AI response with analysis",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Chatbot APIs"
+                ],
+                "summary": "Send a message to chatbot",
+                "parameters": [
+                    {
+                        "description": "Send message request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.SendMessageRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Message sent successfully",
+                        "schema": {
+                            "$ref": "#/definitions/dto.ChatMessageResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/types.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/incoming/baileys": {
             "post": {
                 "description": "Handles webhook events from Baileys WhatsApp service",
@@ -1442,6 +1612,52 @@ const docTemplate = `{
                 }
             }
         },
+        "dto.ChatMessageResponse": {
+            "type": "object",
+            "properties": {
+                "content": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "metadata": {
+                    "description": "Chart data, tables, etc"
+                },
+                "response_time": {
+                    "type": "integer"
+                },
+                "role": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "token_used": {
+                    "type": "integer"
+                }
+            }
+        },
+        "dto.ConversationResponse": {
+            "type": "object",
+            "properties": {
+                "is_active": {
+                    "type": "boolean"
+                },
+                "last_message": {
+                    "type": "string"
+                },
+                "message_count": {
+                    "type": "integer"
+                },
+                "session_id": {
+                    "type": "string"
+                },
+                "title": {
+                    "type": "string"
+                }
+            }
+        },
         "dto.CreateBudgetRequest": {
             "type": "object",
             "required": [
@@ -1681,6 +1897,21 @@ const docTemplate = `{
                     "$ref": "#/definitions/dto.PayloadAICashflow"
                 },
                 "quoted_stanza_id": {
+                    "type": "string"
+                }
+            }
+        },
+        "dto.SendMessageRequest": {
+            "type": "object",
+            "required": [
+                "message"
+            ],
+            "properties": {
+                "message": {
+                    "type": "string"
+                },
+                "session_id": {
+                    "description": "Optional, create new if empty",
                     "type": "string"
                 }
             }

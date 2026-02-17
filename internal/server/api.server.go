@@ -8,6 +8,7 @@ import (
 	analyticsHandler "pannypal/internal/handler/analytics"
 	budgetHandler "pannypal/internal/handler/budget"
 	categoryHandler "pannypal/internal/handler/category"
+	chatbotHandler "pannypal/internal/handler/chatbot"
 	incomingHandler "pannypal/internal/handler/incoming"
 	transactionHandler "pannypal/internal/handler/transaction"
 	webhookHandler "pannypal/internal/handler/webhook"
@@ -22,6 +23,7 @@ import (
 	"pannypal/internal/repository/bot"
 	"pannypal/internal/repository/budget"
 	"pannypal/internal/repository/category"
+	"pannypal/internal/repository/chatbot"
 	logdata "pannypal/internal/repository/log-data"
 	"pannypal/internal/repository/transaction"
 	"pannypal/internal/repository/user"
@@ -30,6 +32,7 @@ import (
 	analyticsService "pannypal/internal/service/analytics"
 	budgetService "pannypal/internal/service/budget"
 	categoryService "pannypal/internal/service/category"
+	chatbotService "pannypal/internal/service/chatbot"
 	incomingService "pannypal/internal/service/incoming"
 	outgoingService "pannypal/internal/service/outgoing"
 	transactionService "pannypal/internal/service/transaction"
@@ -126,6 +129,7 @@ func InitRoutes(
 		Analytics:   analytics.NewRepo(ctx, redis, db),
 		LogData:     logdata.NewRepo(ctx, redis, db),
 		Bot:         bot.NewRepo(ctx, redis, db),
+		Chatbot:     chatbot.NewRepo(ctx, redis, db),
 	}
 	// init services
 	transactionSvc := transactionService.NewService(ctx, redis, rp)
@@ -137,6 +141,7 @@ func InitRoutes(
 	aiCashflowSvc := aicashflowService.NewService(ctx, redis, rp, ai, outgoingSvc)
 	webhookSvc := webhookService.NewService(ctx, redis, rp, aiCashflowSvc)
 	incomingSvc := incomingService.NewService(ctx, redis, rp, aiSvc, outgoingSvc)
+	chatbotSvc := chatbotService.NewService(ctx, redis, rp, db, ai)
 
 	// init handlers
 	transactionHandler := transactionHandler.NewHandler(ctx, rb, transactionSvc)
@@ -147,6 +152,7 @@ func InitRoutes(
 	aiCashflowHandler := aicashflowHandler.NewHandler(ctx, rb, aiCashflowSvc)
 	webhookHandler := webhookHandler.NewHandler(ctx, rb, webhookSvc)
 	incomingHandler := incomingHandler.NewHandler(ctx, rb, incomingSvc)
+	chatbotHandler := chatbotHandler.NewHandler(ctx, chatbotSvc)
 
 	// init handler routes
 	transactionHandler.NewRoutes(e)
@@ -157,4 +163,5 @@ func InitRoutes(
 	aiCashflowHandler.NewRoutes(e)
 	webhookHandler.NewRoutes(e)
 	incomingHandler.NewRoutes(e)
+	chatbotHandler.NewRoutes(e)
 }
