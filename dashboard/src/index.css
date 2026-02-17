@@ -1,0 +1,161 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Family Finance Dashboard Design System
+   Warm, friendly, soft pastels inspired by modern dashboard aesthetics
+*/
+
+@layer base {
+  :root {
+    /* Main background - warm beige/cream like reference */
+    --background: 40 25% 94%;
+    --foreground: 220 20% 20%;
+
+    /* Cards - pure white */
+    --card: 0 0% 100%;
+    --card-foreground: 220 20% 20%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 20% 20%;
+
+    /* Primary - deep charcoal for sidebar */
+    --primary: 30 10% 15%;
+    --primary-foreground: 40 30% 97%;
+
+    /* Secondary - soft lavender */
+    --secondary: 270 30% 94%;
+    --secondary-foreground: 270 30% 35%;
+
+    /* Muted - light warm gray */
+    --muted: 40 15% 92%;
+    --muted-foreground: 220 10% 50%;
+
+    /* Accent - warm peach */
+    --accent: 25 80% 92%;
+    --accent-foreground: 25 60% 35%;
+
+    /* Destructive */
+    --destructive: 0 70% 55%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Borders */
+    --border: 40 15% 88%;
+    --input: 40 15% 88%;
+    --ring: 30 30% 40%;
+
+    --radius: 1rem;
+
+    /* Custom palette for categories */
+    --peach: 25 70% 88%;
+    --peach-dark: 25 55% 50%;
+    --lavender: 270 35% 90%;
+    --lavender-dark: 270 35% 55%;
+    --mint: 160 40% 85%;
+    --mint-dark: 160 40% 42%;
+    --lemon: 50 60% 88%;
+    --lemon-dark: 50 50% 42%;
+    --coral: 350 60% 88%;
+    --coral-dark: 350 50% 52%;
+    --sky: 200 50% 88%;
+    --sky-dark: 200 45% 48%;
+
+    /* Sidebar - dark charcoal */
+    --sidebar-background: 30 10% 12%;
+    --sidebar-foreground: 40 15% 85%;
+    --sidebar-primary: 40 30% 92%;
+    --sidebar-primary-foreground: 30 10% 12%;
+    --sidebar-accent: 30 10% 18%;
+    --sidebar-accent-foreground: 40 15% 85%;
+    --sidebar-border: 30 10% 20%;
+    --sidebar-ring: 40 30% 70%;
+
+    /* Chart colors */
+    --chart-1: 160 40% 55%;
+    --chart-2: 25 55% 60%;
+    --chart-3: 270 35% 60%;
+    --chart-4: 50 50% 55%;
+    --chart-5: 200 50% 55%;
+  }
+
+  .dark {
+    --background: 220 20% 12%;
+    --foreground: 40 20% 95%;
+
+    --card: 220 18% 16%;
+    --card-foreground: 40 20% 95%;
+
+    --popover: 220 18% 16%;
+    --popover-foreground: 40 20% 95%;
+
+    --primary: 150 40% 60%;
+    --primary-foreground: 220 20% 12%;
+
+    --secondary: 270 20% 25%;
+    --secondary-foreground: 270 30% 85%;
+
+    --muted: 220 15% 22%;
+    --muted-foreground: 220 10% 60%;
+
+    --accent: 25 40% 25%;
+    --accent-foreground: 25 60% 85%;
+
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 15% 25%;
+    --input: 220 15% 25%;
+    --ring: 150 40% 50%;
+
+    --sidebar-background: 220 20% 10%;
+    --sidebar-foreground: 40 20% 90%;
+    --sidebar-primary: 150 40% 55%;
+    --sidebar-primary-foreground: 220 20% 10%;
+    --sidebar-accent: 220 18% 18%;
+    --sidebar-accent-foreground: 40 20% 90%;
+    --sidebar-border: 220 15% 20%;
+    --sidebar-ring: 150 40% 50%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-family: 'Nunito', sans-serif;
+  }
+}
+
+@layer components {
+  .category-card {
+    @apply rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-lg;
+  }
+  
+  .stat-card {
+    @apply bg-card rounded-2xl p-5 shadow-sm border border-border/50;
+  }
+  
+  .progress-bar {
+    @apply h-2 rounded-full overflow-hidden bg-muted;
+  }
+  
+  .progress-fill {
+    @apply h-full rounded-full transition-all duration-500 ease-out;
+  }
+}
+
+@layer utilities {
+  .shadow-soft {
+    box-shadow: 0 4px 20px -4px hsl(var(--foreground) / 0.08);
+  }
+  
+  .shadow-glow {
+    box-shadow: 0 0 30px -5px hsl(var(--ring) / 0.3);
+  }
+}
