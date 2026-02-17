@@ -2,6 +2,10 @@ package serverApp
 
 import (
 	"context"
+	"io/fs"
+	"net/http"
+	"os"
+	"path/filepath"
 
 	aiHandler "pannypal/internal/handler/ai"
 	aicashflowHandler "pannypal/internal/handler/ai-cashflow"
@@ -97,6 +101,85 @@ func Setup(
 
 	e := engine.Group(BasePath())
 	InitRoutes(e, ctx, wg, db, redis, rb, publisher, s3, ai)
+
+	// Serve frontend static files from dashboard/dist
+	serveFrontend(engine)
+}
+
+// serveFrontend serves the built React dashboard from dashboard/dist directory.
+// It handles SPA routing by returning index.html for any unmatched routes.
+func serveFrontend(engine *gin.Engine) {
+	// Try to find the dashboard dist directory
+	distPath := findDistPath()
+	if distPath == "" {
+		return // No dist directory found, skip frontend serving
+	}
+
+	// Serve static assets (js, css, images, etc.)
+	engine.Static("/assets", filepath.Join(distPath, "assets"))
+
+	// Serve other static files at root (favicon, manifest, etc.)
+	engine.StaticFile("/favicon.ico", filepath.Join(distPath, "favicon.ico"))
+	engine.StaticFile("/vite.svg", filepath.Join(distPath, "vite.svg"))
+
+	// SPA fallback: serve index.html for any unmatched routes
+	indexHTML, err := os.ReadFile(filepath.Join(distPath, "index.html"))
+	if err != nil {
+		return
+	}
+
+	engine.NoRoute(func(c *gin.Context) {
+		// Don't serve index.html for API routes
+		if len(c.Request.URL.Path) >= 4 && c.Request.URL.Path[:4] == "/api" {
+			c.JSON(404, gin.H{"error": "not found"})
+			return
+		}
+		// Don't serve index.html for swagger routes
+		if len(c.Request.URL.Path) >= 8 && c.Request.URL.Path[:8] == "/swagger" {
+			c.JSON(404, gin.H{"error": "not found"})
+			return
+		}
+
+		// Check if it's a request for an actual static file
+		filePath := filepath.Join(distPath, c.Request.URL.Path)
+		if info, err := os.Stat(filePath); err == nil && !info.IsDir() {
+			c.File(filePath)
+			return
+		}
+
+		// Serve index.html for SPA client-side routing
+		c.Data(http.StatusOK, "text/html; charset=utf-8", indexHTML)
+	})
+}
+
+// findDistPath looks for the dashboard/dist directory relative to the executable or working directory.
+func findDistPath() string {
+	// Try relative to working directory
+	candidates := []string{
+		"dashboard/dist",
+		"../dashboard/dist",
+		"./dist",
+	}
+
+	for _, candidate := range candidates {
+		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+			if _, err := fs.Stat(os.DirFS(candidate), "index.html"); err == nil {
+				return candidate
+			}
+		}
+	}
+
+	// Try relative to executable
+	exePath, err := os.Executable()
+	if err == nil {
+		exeDir := filepath.Dir(exePath)
+		candidate := filepath.Join(exeDir, "dashboard", "dist")
+		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+			return candidate
+		}
+	}
+
+	return ""
 }
 
 func BasePath() string {

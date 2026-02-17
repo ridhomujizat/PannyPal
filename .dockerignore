@@ -28,6 +28,8 @@ api
 
 # Node modules (if any)
 node_modules/
+dashboard/node_modules/
+dashboard/dist/
 
 # Temporary files
 tmp/

@@ -66,3 +66,17 @@ migrate-sql-version:
 run-app:
 	@echo "Running application..."
 	go run cmd/api/main.go
+
+build-dashboard:
+	@echo "Building dashboard..."
+	cd dashboard && npm install && npm run build
+	@echo "Dashboard built to dashboard/dist"
+
+run-full: build-dashboard
+	@echo "Running full stack (backend + frontend)..."
+	go run cmd/api/main.go
+
+build-all: build-dashboard
+	@echo "Building Go application..."
+	go build -o bin/pannypal cmd/api/main.go
+	@echo "Build complete: bin/pannypal"
