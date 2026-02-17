@@ -1,25 +1,30 @@
-import { 
-  Home, 
-  Wallet, 
-  PiggyBank, 
-  TrendingUp, 
-  Receipt, 
+import {
+  Home,
+  Wallet,
+  PiggyBank,
+  TrendingUp,
+  Receipt,
   Menu,
-  X
+  X,
+  MessageSquare
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { useLocation, Link } from "react-router-dom";
 
 const navItems = [
-  { icon: Home, label: "Dashboard", active: true },
-  { icon: Wallet, label: "Transactions", active: false },
-  { icon: PiggyBank, label: "Savings", active: false },
-  { icon: TrendingUp, label: "Investments", active: false },
-  { icon: Receipt, label: "Bills", active: false },
+  { icon: Home, label: "Dashboard", path: "/" },
+  { icon: MessageSquare, label: "AI Chat", path: "/chatbot" },
+  { icon: Wallet, label: "Transactions", path: "/transactions" },
+  { icon: PiggyBank, label: "Savings", path: "/savings" },
+  { icon: TrendingUp, label: "Investments", path: "/investments" },
+  { icon: Receipt, label: "Bills", path: "/bills" },
 ];
+
 
 export function Sidebar() {
   const [isOpen, setIsOpen] = useState(false);
+  const location = useLocation();
 
   return (
     <>
@@ -59,31 +64,35 @@ export function Sidebar() {
         {/* Navigation */}
         <nav className="flex-1 px-2">
           <ul className="space-y-1">
-            {navItems.map((item) => (
-              <li key={item.label}>
-                <a
-                  href="#"
-                  className={cn(
-                    "flex items-center justify-center lg:justify-center gap-3 p-3 rounded-xl transition-all duration-200",
-                    "hover:bg-sidebar-accent group",
-                    item.active
-                      ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                      : "text-sidebar-foreground"
-                  )}
-                  title={item.label}
-                >
-                  <item.icon 
+            {navItems.map((item) => {
+              const isActive = location.pathname === item.path;
+              return (
+                <li key={item.label}>
+                  <Link
+                    to={item.path}
+                    onClick={() => setIsOpen(false)}
                     className={cn(
-                      "w-5 h-5 flex-shrink-0",
-                      item.active ? "" : "group-hover:scale-110 transition-transform"
-                    )} 
-                  />
-                  <span className="font-medium lg:hidden">
-                    {item.label}
-                  </span>
-                </a>
-              </li>
-            ))}
+                      "flex items-center justify-center lg:justify-center gap-3 p-3 rounded-xl transition-all duration-200",
+                      "hover:bg-sidebar-accent group",
+                      isActive
+                        ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                        : "text-sidebar-foreground"
+                    )}
+                    title={item.label}
+                  >
+                    <item.icon
+                      className={cn(
+                        "w-5 h-5 flex-shrink-0",
+                        isActive ? "" : "group-hover:scale-110 transition-transform"
+                      )}
+                    />
+                    <span className="font-medium lg:hidden">
+                      {item.label}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
       </aside>

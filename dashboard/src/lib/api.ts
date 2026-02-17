@@ -125,7 +125,7 @@ export interface TransactionsData {
     runtimeMs: number;
   };
 }
-  
+
 
 export const useTransactions = (
   startDate: string,
@@ -226,3 +226,142 @@ export const useCategoryTransactions = (
     staleTime: 2 * 60 * 1000,
   });
 };
+
+// Chatbot API Types
+export interface ChatMetadata {
+  visualization?: {
+    type: string;
+    data: any;
+    config?: any;
+  };
+  statistics?: {
+    total: number;
+    average?: number;
+    change_percentage?: number;
+    top_category?: string;
+  };
+  recommendations?: Array<{
+    title: string;
+    potential_saving?: number;
+    difficulty: string;
+    description?: string;
+    action_items?: string[];
+  }>;
+  total_potential_saving?: number;
+  raw_data?: any;
+}
+
+export interface ChatMessage {
+  session_id: string;
+  role: "user" | "assistant";
+  content: string;
+  metadata?: ChatMetadata;
+  token_used: number;
+  response_time: number;
+  created_at: string;
+}
+
+export interface Conversation {
+  session_id: string;
+  title: string;
+  is_active: boolean;
+  message_count: number;
+  last_message: string;
+}
+
+export interface ConversationDetail {
+  session_id: string;
+  title: string;
+  is_active: boolean;
+  message_count: number;
+  messages: ChatMessage[];
+}
+
+export interface SendMessageRequest {
+  session_id?: string;
+  message: string;
+}
+
+// Backend chatbot handler returns raw types.Response with uppercase field names
+// (uses c.JSON directly instead of the send middleware)
+export interface ChatbotRawResponse<T> {
+  Data: T;
+  Message: string;
+  Code: number;
+  Error: string | null;
+}
+
+// Chatbot API Hooks
+export const useSendMessage = () => {
+  return async (payload: SendMessageRequest): Promise<ChatMessage> => {
+    const response = await fetch(`${BASE_URL}/api/chatbot/send`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to send message");
+    }
+
+    const result: ChatbotRawResponse<ChatMessage> = await response.json();
+    return result.Data;
+  };
+};
+
+export const useConversations = (limit: number = 20) => {
+  return useQuery<Conversation[]>({
+    queryKey: ["conversations", limit],
+    queryFn: async () => {
+      const response = await fetch(
+        `${BASE_URL}/api/chatbot/conversations?limit=${limit}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch conversations");
+      }
+
+      const result: ChatbotRawResponse<Conversation[]> = await response.json();
+      return result.Data || [];
+    },
+    staleTime: 1 * 60 * 1000, // 1 minute
+  });
+};
+
+export const useConversation = (sessionId: string | null, limit: number = 50) => {
+  return useQuery<ConversationDetail>({
+    queryKey: ["conversation", sessionId, limit],
+    queryFn: async () => {
+      const response = await fetch(
+        `${BASE_URL}/api/chatbot/conversations/${sessionId}?limit=${limit}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch conversation");
+      }
+
+      const result: ChatbotRawResponse<ConversationDetail> = await response.json();
+      return result.Data;
+    },
+    enabled: sessionId !== null,
+    staleTime: 30 * 1000, // 30 seconds
+  });
+};
+
+export const useClearConversation = () => {
+  return async (sessionId: string): Promise<void> => {
+    const response = await fetch(
+      `${BASE_URL}/api/chatbot/conversations/${sessionId}/clear`,
+      {
+        method: "POST",
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Failed to clear conversation");
+    }
+  };
+};
+
